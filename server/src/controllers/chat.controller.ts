@@ -30,6 +30,13 @@ function getValidationMessage(error: ZodError) {
   return error.issues[0]?.message ?? 'Invalid chat request.';
 }
 
+function getValidationDetails(error: ZodError) {
+  return error.issues.map((issue) => ({
+    field: issue.path.length > 0 ? issue.path.join('.') : 'body',
+    message: issue.message,
+  }));
+}
+
 function extractJson(text: string) {
   const trimmed = text.trim();
 
@@ -302,7 +309,11 @@ export async function chatController(request: Request, response: Response) {
     response.status(200).json(createContextualFallbackChatResponse(input));
   } catch (error) {
     if (error instanceof ZodError) {
-      response.status(400).json({ message: getValidationMessage(error) });
+      response.status(400).json({
+        success: false,
+        message: getValidationMessage(error),
+        details: getValidationDetails(error),
+      });
       return;
     }
 

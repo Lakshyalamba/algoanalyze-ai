@@ -3,6 +3,7 @@ import { buildAnalysisPrompt } from '../prompts/analysis.prompt.js';
 import type { AnalysisResult, AnalyzeCodeInput } from '../types/analysis.js';
 
 const model = 'gemini-2.5-flash';
+const geminiTimeoutMs = 30_000;
 
 function createFallbackAnalysis(
   input: AnalyzeCodeInput,
@@ -117,7 +118,7 @@ function normalizeAnalysis(value: unknown, input: AnalyzeCodeInput): AnalysisRes
       ? difficulty
       : 'Medium';
 
-  return {
+  const normalized: AnalysisResult = {
     problemSummary: String(value.problemSummary ?? ''),
     questionExplanation: String(value.questionExplanation ?? ''),
     hinglishExplanation: String(value.hinglishExplanation ?? ''),
@@ -185,6 +186,37 @@ function normalizeAnalysis(value: unknown, input: AnalyzeCodeInput): AnalysisRes
         })
       : [],
   };
+
+  if (normalized.steps.length === 0) {
+    return createFallbackAnalysis(input, 'Gemini returned no visualization steps.');
+  }
+
+  const fallback = createFallbackAnalysis(input);
+
+  return {
+    ...normalized,
+    problemSummary: normalized.problemSummary || fallback.problemSummary,
+    questionExplanation: normalized.questionExplanation || fallback.questionExplanation,
+    bruteForceApproach: normalized.bruteForceApproach || fallback.bruteForceApproach,
+    betterApproach: normalized.betterApproach || fallback.betterApproach,
+    optimizedApproach: normalized.optimizedApproach || fallback.optimizedApproach,
+    dryRunTable: normalized.dryRunTable.length > 0 ? normalized.dryRunTable : fallback.dryRunTable,
+    edgeCases:
+      normalized.edgeCases.length > 0 ? normalized.edgeCases : fallback.edgeCases,
+    similarProblems:
+      normalized.similarProblems.length > 0 ? normalized.similarProblems : fallback.similarProblems,
+    quizQuestions:
+      normalized.quizQuestions.length > 0 ? normalized.quizQuestions : fallback.quizQuestions,
+  };
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_resolve, reject) => {
+      setTimeout(() => reject(new Error('Gemini request timed out.')), timeoutMs);
+    }),
+  ]);
 }
 
 export async function analyzeCodeWithGemini(input: AnalyzeCodeInput): Promise<AnalysisResult> {
@@ -196,14 +228,17 @@ export async function analyzeCodeWithGemini(input: AnalyzeCodeInput): Promise<An
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model,
-      contents: buildAnalysisPrompt(input),
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.3,
-      },
-    });
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model,
+        contents: buildAnalysisPrompt(input),
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+        },
+      }),
+      geminiTimeoutMs,
+    );
 
     const text = response.text ?? '';
     const json = extractJson(text);
