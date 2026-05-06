@@ -14,8 +14,7 @@ import {
   signupUser,
   type User,
 } from '../services/authApi';
-
-const tokenStorageKey = 'algoanalyze_token';
+import { getStoredToken, removeStoredToken, setStoredToken } from '../utils/apiError';
 
 type AuthContextValue = {
   user: User | null;
@@ -32,23 +31,23 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(tokenStorageKey));
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [isLoading, setIsLoading] = useState(true);
 
   const persistSession = useCallback((nextToken: string, nextUser: User) => {
-    localStorage.setItem(tokenStorageKey, nextToken);
+    setStoredToken(nextToken);
     setToken(nextToken);
     setUser(nextUser);
   }, []);
 
   const clearSession = useCallback(() => {
-    localStorage.removeItem(tokenStorageKey);
+    removeStoredToken();
     setToken(null);
     setUser(null);
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const storedToken = localStorage.getItem(tokenStorageKey);
+    const storedToken = getStoredToken();
 
     if (!storedToken) {
       clearSession();
