@@ -140,6 +140,7 @@ VITE_API_BASE_URL=http://localhost:5000
 ```env
 PORT=5000
 CLIENT_URL=http://localhost:5173
+ALLOW_VERCEL_PREVIEWS=true
 DATABASE_URL=
 JWT_SECRET=
 JWT_EXPIRES_IN=7d
@@ -341,6 +342,7 @@ Add these server environment variables:
 ```env
 PORT=5000
 CLIENT_URL=https://your-frontend-url.com
+ALLOW_VERCEL_PREVIEWS=true
 DATABASE_URL=
 JWT_SECRET=
 JWT_EXPIRES_IN=7d

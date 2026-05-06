@@ -2,6 +2,7 @@ type ServerEnv = {
   host: string;
   port: number;
   clientUrl: string;
+  allowVercelPreviews: boolean;
   databaseUrl: string;
   jwtSecret: string;
   jwtExpiresIn: string;
@@ -51,6 +52,7 @@ export function loadEnv(): ServerEnv {
     host: process.env.HOST?.trim() || '127.0.0.1',
     port: parsePort(process.env.PORT),
     clientUrl: process.env.CLIENT_URL?.trim() || 'http://localhost:5173',
+    allowVercelPreviews: process.env.ALLOW_VERCEL_PREVIEWS === 'true',
     databaseUrl: process.env.DATABASE_URL!.trim(),
     jwtSecret: process.env.JWT_SECRET!.trim(),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || '7d',

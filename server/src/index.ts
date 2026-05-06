@@ -27,6 +27,32 @@ try {
 }
 
 const app = express();
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isProduction = process.env.NODE_ENV === 'production';
+
+function isAllowedCorsOrigin(origin: string | undefined) {
+  if (!origin) {
+    return true;
+  }
+
+  if (origin === env.clientUrl) {
+    return true;
+  }
+
+  if (isDevelopment && origin === 'http://localhost:5173') {
+    return true;
+  }
+
+  if (isProduction && env.allowVercelPreviews) {
+    try {
+      return new URL(origin).hostname.endsWith('.vercel.app');
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
 
 const generalApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -63,13 +89,15 @@ const aiLimiter = rateLimit({
 
 app.use(helmet());
 
-if (process.env.NODE_ENV !== 'production') {
+if (isDevelopment) {
   app.use(morgan('dev'));
 }
 
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin: (origin, callback) => {
+      callback(null, isAllowedCorsOrigin(origin));
+    },
     credentials: true,
   }),
 );
@@ -94,6 +122,7 @@ app.use(errorHandler);
 const server = app.listen(env.port, env.host, () => {
   console.log(`AlgoAnalyze AI API listening on http://${env.host}:${env.port}`);
   console.log(`Allowed client origin: ${env.clientUrl}`);
+  console.log(`Allow Vercel previews: ${env.allowVercelPreviews}`);
   console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);
 });
 
