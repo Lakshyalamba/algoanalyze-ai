@@ -1,6 +1,8 @@
-import Editor from '@monaco-editor/react';
+import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
 import { Eraser, FileCode2 } from 'lucide-react';
-import type { LanguageMode } from '../../types/analysis';
+import { useEffect, useMemo, useRef } from 'react';
+import type { editor } from 'monaco-editor';
+import type { AnalysisResult, LanguageMode } from '../../types/analysis';
 import { LoadingButton } from './LoadingButton';
 
 type InputPanelProps = {
@@ -10,6 +12,9 @@ type InputPanelProps = {
   sampleInput: string;
   expectedOutput: string;
   languageMode: LanguageMode;
+  analysisResult: AnalysisResult | null;
+  activeStepIndex: number;
+  codeChangedAfterAnalysis: boolean;
   isAnalyzing: boolean;
   error: string;
   onTitleChange: (value: string) => void;
@@ -25,6 +30,12 @@ type InputPanelProps = {
 const fieldClass =
   'mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
 
+type MonacoEditor = Parameters<OnMount>[0];
+
+function getLineCount(code: string) {
+  return code.split('\n').length;
+}
+
 export function InputPanel({
   title,
   problemStatement,
@@ -32,6 +43,9 @@ export function InputPanel({
   sampleInput,
   expectedOutput,
   languageMode,
+  analysisResult,
+  activeStepIndex,
+  codeChangedAfterAnalysis,
   isAnalyzing,
   error,
   onTitleChange,
@@ -43,6 +57,69 @@ export function InputPanel({
   onAnalyze,
   onClear,
 }: InputPanelProps) {
+  const editorRef = useRef<MonacoEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
+  const decorationIdsRef = useRef<string[]>([]);
+
+  const activeLine = analysisResult?.steps[activeStepIndex]?.line;
+  const editorLineCount = useMemo(() => getLineCount(code), [code]);
+  const hasActiveLine =
+    typeof activeLine === 'number' &&
+    Number.isInteger(activeLine) &&
+    activeLine > 0 &&
+    activeLine <= editorLineCount;
+
+  const clearDecorations = () => {
+    if (!editorRef.current) {
+      decorationIdsRef.current = [];
+      return;
+    }
+
+    decorationIdsRef.current = editorRef.current.deltaDecorations(decorationIdsRef.current, []);
+  };
+
+  const handleEditorMount: OnMount = (editorInstance, monacoInstance) => {
+    editorRef.current = editorInstance;
+    monacoRef.current = monacoInstance;
+  };
+
+  useEffect(() => {
+    const editorInstance = editorRef.current;
+    const monacoInstance = monacoRef.current;
+    const model = editorInstance?.getModel();
+
+    if (!editorInstance || !monacoInstance || !model || !hasActiveLine) {
+      clearDecorations();
+      return;
+    }
+
+    const decorations: editor.IModelDeltaDecoration[] = [
+      {
+        range: new monacoInstance.Range(activeLine, 1, activeLine, 1),
+        options: {
+          isWholeLine: true,
+          className: 'algo-current-line',
+          glyphMarginClassName: 'algo-current-line-glyph',
+          overviewRuler: {
+            color: 'rgba(20, 184, 166, 0.7)',
+            position: monacoInstance.editor.OverviewRulerLane.Center,
+          },
+        },
+      },
+    ];
+
+    decorationIdsRef.current = editorInstance.deltaDecorations(
+      decorationIdsRef.current,
+      decorations,
+    );
+
+    return () => {
+      if (editorRef.current) {
+        decorationIdsRef.current = editorRef.current.deltaDecorations(decorationIdsRef.current, []);
+      }
+    };
+  }, [activeLine, hasActiveLine]);
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
@@ -84,7 +161,16 @@ export function InputPanel({
 
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <label className="text-sm font-medium text-slate-700">Python code</label>
+            <div>
+              <label className="text-sm font-medium text-slate-700">Python code</label>
+              {analysisResult ? (
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  {hasActiveLine
+                    ? `Currently executing line: ${activeLine}`
+                    : 'No active line selected.'}
+                </p>
+              ) : null}
+            </div>
             <div className="rounded-md bg-slate-100 p-1">
               {(['english', 'hinglish'] as const).map((mode) => (
                 <button
@@ -102,6 +188,11 @@ export function InputPanel({
               ))}
             </div>
           </div>
+          {codeChangedAfterAnalysis ? (
+            <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+              Code changed after analysis. Re-run analysis for accurate steps.
+            </div>
+          ) : null}
           <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
             <Editor
               height="350px"
@@ -109,8 +200,10 @@ export function InputPanel({
               language="python"
               theme="vs-dark"
               value={code}
+              onMount={handleEditorMount}
               onChange={(value) => onCodeChange(value ?? '')}
               options={{
+                glyphMargin: true,
                 minimap: { enabled: false },
                 fontSize: 14,
                 lineNumbersMinChars: 3,
@@ -160,4 +253,3 @@ export function InputPanel({
     </section>
   );
 }
-

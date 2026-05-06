@@ -21,3 +21,25 @@ a {
   text-decoration: none;
 }
 
+.algo-current-line {
+  background: rgba(20, 184, 166, 0.16);
+  border-top: 1px solid rgba(20, 184, 166, 0.35);
+  border-bottom: 1px solid rgba(20, 184, 166, 0.35);
+}
+
+.algo-current-line-glyph {
+  position: relative;
+}
+
+.algo-current-line-glyph::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.22);
+  content: "";
+  transform: translate(-50%, -50%);
+}

@@ -19,22 +19,41 @@ import { getState } from './visualizerUtils';
 
 type DSAVisualizerProps = {
   steps: AnalysisStep[];
+  activeStepIndex: number;
+  codeChangedAfterAnalysis: boolean;
+  onStepChange: (stepIndex: number) => void;
 };
 
-export function DSAVisualizer({ steps }: DSAVisualizerProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+function clampStepIndex(index: number, totalSteps: number) {
+  if (totalSteps <= 0) return 0;
+  return Math.min(Math.max(index, 0), totalSteps - 1);
+}
+
+export function DSAVisualizer({
+  steps,
+  activeStepIndex,
+  codeChangedAfterAnalysis,
+  onStepChange,
+}: DSAVisualizerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
 
   const safeSteps = useMemo(() => (Array.isArray(steps) ? steps : []), [steps]);
+  const currentStepIndex = clampStepIndex(activeStepIndex, safeSteps.length);
   const currentStep = safeSteps[currentStepIndex];
   const currentState = currentStep ? getState(currentStep) : null;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentStepIndex(0);
     setIsPlaying(false);
   }, [safeSteps]);
+
+  useEffect(() => {
+    const clampedIndex = clampStepIndex(activeStepIndex, safeSteps.length);
+    if (activeStepIndex !== clampedIndex) {
+      onStepChange(clampedIndex);
+    }
+  }, [activeStepIndex, onStepChange, safeSteps.length]);
 
   useEffect(() => {
     if (!isPlaying || safeSteps.length <= 1) {
@@ -43,17 +62,16 @@ export function DSAVisualizer({ steps }: DSAVisualizerProps) {
 
     const delay = 1200 / speed;
     const timer = window.setTimeout(() => {
-      setCurrentStepIndex((index) => {
-        if (index >= safeSteps.length - 1) {
-          setIsPlaying(false);
-          return index;
-        }
-        return index + 1;
-      });
+      if (currentStepIndex >= safeSteps.length - 1) {
+        setIsPlaying(false);
+        return;
+      }
+
+      onStepChange(currentStepIndex + 1);
     }, delay);
 
     return () => window.clearTimeout(timer);
-  }, [currentStepIndex, isPlaying, safeSteps.length, speed]);
+  }, [currentStepIndex, isPlaying, onStepChange, safeSteps.length, speed]);
 
   if (safeSteps.length === 0 || !currentStep || !currentState) {
     return (
@@ -64,20 +82,29 @@ export function DSAVisualizer({ steps }: DSAVisualizerProps) {
   }
 
   const totalSteps = safeSteps.length;
+  const changeStep = (stepIndex: number) => {
+    onStepChange(clampStepIndex(stepIndex, totalSteps));
+  };
 
   return (
     <div className="space-y-5">
+      {codeChangedAfterAnalysis ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          Code changed after analysis. Re-run analysis to update visualization.
+        </div>
+      ) : null}
+
       <StepControls
         currentStepIndex={currentStepIndex}
         totalSteps={totalSteps}
         isPlaying={isPlaying}
         speed={speed}
-        onPrevious={() => setCurrentStepIndex((index) => Math.max(0, index - 1))}
-        onNext={() => setCurrentStepIndex((index) => Math.min(totalSteps - 1, index + 1))}
+        onPrevious={() => changeStep(currentStepIndex - 1)}
+        onNext={() => changeStep(currentStepIndex + 1)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onReset={() => {
-          setCurrentStepIndex(0);
+          changeStep(0);
           setIsPlaying(false);
         }}
         onSpeedChange={setSpeed}
