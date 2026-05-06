@@ -5,7 +5,10 @@ import express from 'express';
 import { loadEnv } from './config/env.js';
 import { analyzeRouter } from './routes/analyze.routes.js';
 import { authRouter } from './routes/auth.routes.js';
+import { chatRouter } from './routes/chat.routes.js';
 import { healthRouter } from './routes/health.routes.js';
+import { savedProblemRouter } from './routes/savedProblem.routes.js';
+import { statsRouter } from './routes/stats.routes.js';
 
 dotenv.config();
 
@@ -32,6 +35,9 @@ app.use(cookieParser());
 app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/analyze-code', analyzeRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/saved-problems', savedProblemRouter);
+app.use('/api/stats', statsRouter);
 
 app.listen(env.port, () => {
   console.log(`AlgoAnalyze AI API listening on port ${env.port}`);
