@@ -1,0 +1,163 @@
+import Editor from '@monaco-editor/react';
+import { Eraser, FileCode2 } from 'lucide-react';
+import type { LanguageMode } from '../../types/analysis';
+import { LoadingButton } from './LoadingButton';
+
+type InputPanelProps = {
+  title: string;
+  problemStatement: string;
+  code: string;
+  sampleInput: string;
+  expectedOutput: string;
+  languageMode: LanguageMode;
+  isAnalyzing: boolean;
+  error: string;
+  onTitleChange: (value: string) => void;
+  onProblemStatementChange: (value: string) => void;
+  onCodeChange: (value: string) => void;
+  onSampleInputChange: (value: string) => void;
+  onExpectedOutputChange: (value: string) => void;
+  onLanguageModeChange: (value: LanguageMode) => void;
+  onAnalyze: () => void;
+  onClear: () => void;
+};
+
+const fieldClass =
+  'mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
+
+export function InputPanel({
+  title,
+  problemStatement,
+  code,
+  sampleInput,
+  expectedOutput,
+  languageMode,
+  isAnalyzing,
+  error,
+  onTitleChange,
+  onProblemStatementChange,
+  onCodeChange,
+  onSampleInputChange,
+  onExpectedOutputChange,
+  onLanguageModeChange,
+  onAnalyze,
+  onClear,
+}: InputPanelProps) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-950 text-white">
+          <FileCode2 className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div>
+          <h2 className="text-base font-semibold text-slate-950">Problem workspace</h2>
+          <p className="text-sm text-slate-500">Write Python code and generate a mock review.</p>
+        </div>
+      </div>
+
+      <div className="space-y-5 p-5">
+        {error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+
+        <label className="block text-sm font-medium text-slate-700">
+          Problem title
+          <input
+            value={title}
+            onChange={(event) => onTitleChange(event.target.value)}
+            className={fieldClass}
+            placeholder="Two Sum"
+          />
+        </label>
+
+        <label className="block text-sm font-medium text-slate-700">
+          Problem statement
+          <textarea
+            value={problemStatement}
+            onChange={(event) => onProblemStatementChange(event.target.value)}
+            className={`${fieldClass} min-h-28 resize-y leading-6`}
+            placeholder="Paste the DSA problem statement here..."
+          />
+        </label>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label className="text-sm font-medium text-slate-700">Python code</label>
+            <div className="rounded-md bg-slate-100 p-1">
+              {(['english', 'hinglish'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => onLanguageModeChange(mode)}
+                  className={`rounded px-3 py-1.5 text-xs font-semibold capitalize transition ${
+                    languageMode === mode
+                      ? 'bg-white text-brand-600 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-950'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
+            <Editor
+              height="350px"
+              defaultLanguage="python"
+              language="python"
+              theme="vs-dark"
+              value={code}
+              onChange={(value) => onCodeChange(value ?? '')}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbersMinChars: 3,
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                padding: { top: 16, bottom: 16 },
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block text-sm font-medium text-slate-700">
+            Sample input
+            <textarea
+              value={sampleInput}
+              onChange={(event) => onSampleInputChange(event.target.value)}
+              className={`${fieldClass} min-h-24 resize-y font-mono`}
+              placeholder="[2, 7, 11, 15], target = 9"
+            />
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            Expected output
+            <textarea
+              value={expectedOutput}
+              onChange={(event) => onExpectedOutputChange(event.target.value)}
+              className={`${fieldClass} min-h-24 resize-y font-mono`}
+              placeholder="[0, 1]"
+            />
+          </label>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <LoadingButton type="button" isLoading={isAnalyzing} onClick={onAnalyze}>
+            {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
+          </LoadingButton>
+          <button
+            type="button"
+            onClick={onClear}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+          >
+            <Eraser className="h-4 w-4" aria-hidden="true" />
+            Clear
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
