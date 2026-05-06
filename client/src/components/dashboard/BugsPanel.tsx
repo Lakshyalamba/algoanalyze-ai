@@ -8,7 +8,7 @@ export function BugsPanel({ bugsOrWarnings }: BugsPanelProps) {
   if (bugsOrWarnings.length === 0) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-        <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+        <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />
         No major bugs found.
       </div>
     );
@@ -28,4 +28,3 @@ export function BugsPanel({ bugsOrWarnings }: BugsPanelProps) {
     </ul>
   );
 }
-

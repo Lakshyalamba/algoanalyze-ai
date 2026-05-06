@@ -41,7 +41,7 @@ export type AnalysisResult = {
   questionExplanation: string;
   hinglishExplanation: string;
   pattern: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | string;
   timeComplexity: string;
   spaceComplexity: string;
   bruteForceApproach: string;

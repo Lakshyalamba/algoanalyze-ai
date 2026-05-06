@@ -5,6 +5,7 @@ import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { InputPanel } from '../components/dashboard/InputPanel';
 import { PageShell } from '../components/PageShell';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { createMockAnalysis } from '../lib/mockAnalysis';
 import { analyzeCode } from '../services/api';
 import { saveProblem } from '../services/savedProblemApi';
@@ -17,6 +18,7 @@ const starterCode = `class Solution:
 
 export function Dashboard() {
   const { token } = useAuth();
+  const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [problemStatement, setProblemStatement] = useState('');
   const [code, setCode] = useState(starterCode);
@@ -37,8 +39,15 @@ export function Dashboard() {
     analysisResult !== null && analyzedCode !== null && code !== analyzedCode;
 
   async function handleAnalyze() {
+    if (!problemStatement.trim()) {
+      setError('Add a problem statement before analysis.');
+      showToast('Problem statement is required.', 'error');
+      return;
+    }
+
     if (!code.trim()) {
       setError('Add Python code before analysis.');
+      showToast('Code is required.', 'error');
       return;
     }
 
@@ -64,6 +73,7 @@ export function Dashboard() {
       setSaveMessage('');
       setSaveError('');
       setActiveTab('explanation');
+      showToast('Analysis completed.', 'success');
     } catch (caughtError) {
       const message =
         caughtError instanceof Error ? caughtError.message : 'Unable to analyze code.';
@@ -83,10 +93,12 @@ export function Dashboard() {
         setSaveError('');
         setActiveTab('explanation');
         setError('Backend is unavailable. Showing a local development fallback response.');
+        showToast('Backend unavailable. Showing fallback analysis.', 'info');
         return;
       }
 
       setError(message);
+      showToast('Analysis failed.', 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -147,10 +159,12 @@ export function Dashboard() {
       });
 
       setSaveMessage('Analysis saved successfully');
+      showToast('Saved successfully.', 'success');
     } catch (caughtError) {
       const message =
         caughtError instanceof Error ? caughtError.message : 'Unable to save analysis.';
       setSaveError(message);
+      showToast('Save failed.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -187,12 +201,26 @@ export function Dashboard() {
         }
         analysisPanel={
           <div className="space-y-4">
+            {isAnalyzing ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="mt-3 h-3 w-64 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {[0, 1, 2, 3].map((item) => (
+                    <div
+                      key={item}
+                      className="h-20 animate-pulse rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             {analysisResult ? (
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-semibold text-slate-950">Save this analysis</h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <h2 className="text-sm font-semibold text-slate-950 dark:text-slate-100">Save this analysis</h2>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                       Store this result in your history for later review.
                     </p>
                   </div>
@@ -200,7 +228,8 @@ export function Dashboard() {
                     type="button"
                     disabled={isSaving}
                     onClick={handleSaveAnalysis}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                    aria-label="Save analysis"
                   >
                     <Save className="h-4 w-4" aria-hidden="true" />
                     {isSaving ? 'Saving...' : 'Save Analysis'}
@@ -225,6 +254,7 @@ export function Dashboard() {
               languageMode={languageMode}
               activeStepIndex={activeStepIndex}
               codeChangedAfterAnalysis={codeChangedAfterAnalysis}
+              title={title}
               problemStatement={problemStatement}
               code={code}
               sampleInput={sampleInput}

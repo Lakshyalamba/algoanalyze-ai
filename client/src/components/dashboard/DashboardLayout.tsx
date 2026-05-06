@@ -12,11 +12,10 @@ export function DashboardLayout({ inputPanel, analysisPanel }: DashboardLayoutPr
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: 'easeOut' }}
-      className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)]"
+      className="grid items-start gap-6 xl:grid-cols-[minmax(420px,0.95fr)_minmax(0,1.05fr)]"
     >
-      {inputPanel}
+      <div className="xl:sticky xl:top-24">{inputPanel}</div>
       {analysisPanel}
     </motion.div>
   );
 }
-

@@ -28,7 +28,7 @@ type InputPanelProps = {
 };
 
 const fieldClass =
-  'mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
+  'mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500';
 
 type MonacoEditor = Parameters<OnMount>[0];
 
@@ -121,14 +121,14 @@ export function InputPanel({
   }, [activeLine, hasActiveLine]);
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-950 text-white">
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white dark:bg-brand-500">
           <FileCode2 className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Problem workspace</h2>
-          <p className="text-sm text-slate-500">Write Python code and generate a mock review.</p>
+          <h2 className="text-base font-semibold text-slate-950 dark:text-slate-100">Problem workspace</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Paste Python code and generate AI analysis.</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export function InputPanel({
           </div>
         ) : null}
 
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
           Problem title
           <input
             value={title}
@@ -149,7 +149,7 @@ export function InputPanel({
           />
         </label>
 
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
           Problem statement
           <textarea
             value={problemStatement}
@@ -162,16 +162,16 @@ export function InputPanel({
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
             <div>
-              <label className="text-sm font-medium text-slate-700">Python code</label>
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Python code</label>
               {analysisResult ? (
-                <p className="mt-1 text-xs font-medium text-slate-500">
+                <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
                   {hasActiveLine
-                    ? `Currently executing line: ${activeLine}`
+                    ? `Current Line: ${activeLine}`
                     : 'No active line selected.'}
                 </p>
               ) : null}
             </div>
-            <div className="rounded-md bg-slate-100 p-1">
+            <div className="rounded-md bg-slate-100 p-1 dark:bg-slate-950">
               {(['english', 'hinglish'] as const).map((mode) => (
                 <button
                   key={mode}
@@ -179,8 +179,8 @@ export function InputPanel({
                   onClick={() => onLanguageModeChange(mode)}
                   className={`rounded px-3 py-1.5 text-xs font-semibold capitalize transition ${
                     languageMode === mode
-                      ? 'bg-white text-brand-600 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-950'
+                      ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-100'
+                      : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   }`}
                 >
                   {mode}
@@ -216,7 +216,7 @@ export function InputPanel({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Sample input
             <textarea
               value={sampleInput}
@@ -225,7 +225,7 @@ export function InputPanel({
               placeholder="[2, 7, 11, 15], target = 9"
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Expected output
             <textarea
               value={expectedOutput}
@@ -243,7 +243,8 @@ export function InputPanel({
           <button
             type="button"
             onClick={onClear}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+            aria-label="Clear workspace"
           >
             <Eraser className="h-4 w-4" aria-hidden="true" />
             Clear

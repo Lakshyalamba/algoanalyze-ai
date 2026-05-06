@@ -11,9 +11,9 @@ export function QuizPanel({ quizQuestions }: QuizPanelProps) {
       {quizQuestions.map((item, index) => (
         <details
           key={item.question}
-          className="group rounded-lg border border-slate-200 bg-white p-4"
+          className="group rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
         >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-950">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-950 dark:text-slate-100">
             <span>
               {index + 1}. {item.question}
             </span>
@@ -22,10 +22,9 @@ export function QuizPanel({ quizQuestions }: QuizPanelProps) {
               aria-hidden="true"
             />
           </summary>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{item.answer}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.answer}</p>
         </details>
       ))}
     </div>
   );
 }
-

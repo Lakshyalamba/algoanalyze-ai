@@ -11,11 +11,10 @@ export function LoadingButton({ isLoading, children, disabled, ...props }: Loadi
     <button
       {...props}
       disabled={disabled || isLoading}
-      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
       {children}
     </button>
   );
 }
-
