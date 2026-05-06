@@ -1,4 +1,4 @@
-import { Eraser, SendHorizonal, Sparkles } from 'lucide-react';
+import { Eraser, Loader2, SendHorizonal, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { sendChatMessage } from '../../services/chatApi';
@@ -56,7 +56,7 @@ export function ChatbotPanel({
   const emptyMessage = useMemo(
     () =>
       hasContext
-        ? 'Ask about the current problem, code, dry run, complexity, bugs, or optimization.'
+        ? 'Ask me anything about this problem or code.'
         : 'Add a problem or code to get more specific DSA help.',
     [hasContext],
   );
@@ -111,15 +111,15 @@ export function ChatbotPanel({
   }
 
   return (
-    <div className="flex min-h-[560px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+    <div className="flex min-h-[560px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-50 text-brand-600">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-950">AlgoAnalyze Chatbot</h3>
-            <p className="text-xs text-slate-500">DSA-focused help for this workspace</p>
+            <h3 className="text-sm font-semibold text-slate-950 dark:text-slate-100">AlgoAnalyze Chatbot</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">DSA-focused help for this workspace</p>
           </div>
         </div>
         <button
@@ -129,7 +129,8 @@ export function ChatbotPanel({
             setError('');
             setSuggestedQuestions(initialQuestions);
           }}
-          className="inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+          className="inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+          aria-label="Clear chat"
         >
           <Eraser className="h-4 w-4" aria-hidden="true" />
           Clear chat
@@ -138,7 +139,7 @@ export function ChatbotPanel({
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
             {emptyMessage}
           </div>
         ) : (
@@ -147,7 +148,8 @@ export function ChatbotPanel({
 
         {isSending ? (
           <div className="flex justify-start">
-            <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               Thinking...
             </div>
           </div>
@@ -156,7 +158,7 @@ export function ChatbotPanel({
         <div ref={scrollAnchorRef} />
       </div>
 
-      <div className="space-y-3 border-t border-slate-200 bg-white p-4">
+      <div className="space-y-3 border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
         {error ? (
           <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
@@ -180,12 +182,13 @@ export function ChatbotPanel({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Ask about the code, dry run, bugs, complexity..."
-            className="min-h-11 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="min-h-11 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
           <button
             type="submit"
             disabled={isSending || !draft.trim()}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+            aria-label="Send chat message"
           >
             <SendHorizonal className="h-4 w-4" aria-hidden="true" />
             Send
