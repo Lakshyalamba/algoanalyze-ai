@@ -1,7 +1,5 @@
 import type { AnalysisStep, DryRunRow, QuizQuestion } from '../types/analysis';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5050';
-const tokenStorageKey = 'algoanalyze_token';
+import { API_BASE_URL, getStoredToken, normalizeApiError, parseApiResponse } from '../utils/apiError';
 
 export type SaveProblemPayload = {
   title: string;
@@ -56,27 +54,25 @@ export type SavedProblem = SavedProblemListItem & {
 };
 
 function getToken() {
-  return localStorage.getItem(tokenStorageKey);
+  return getStoredToken();
 }
 
 async function request<T>(path: string, options: RequestInit = {}) {
-  const token = getToken();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  try {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
 
-  const data = (await response.json().catch(() => ({}))) as { message?: string };
-
-  if (!response.ok) {
-    throw new Error(data.message ?? 'Saved problem request failed.');
+    return await parseApiResponse<T>(response, 'Saved problem request failed.');
+  } catch (error) {
+    throw new Error(normalizeApiError(error, 'Saved problem request failed.'));
   }
-
-  return data as T;
 }
 
 export function saveProblem(payload: SaveProblemPayload) {

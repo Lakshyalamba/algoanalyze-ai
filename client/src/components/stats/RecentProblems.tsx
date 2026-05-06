@@ -15,23 +15,23 @@ function formatDate(value: string) {
 
 export function RecentProblems({ problems }: RecentProblemsProps) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-950">Recent saved problems</h2>
-      <div className="mt-4 divide-y divide-slate-200">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h2 className="text-base font-semibold text-slate-950 dark:text-slate-100">Recent saved problems</h2>
+      <div className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
         {problems.map((problem) => (
           <Link
             key={problem.id}
             to={`/saved-problems/${problem.id}`}
-            className="block py-3 transition hover:bg-slate-50"
+            className="block rounded-md px-2 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-semibold text-slate-950">{problem.title}</p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="font-semibold text-slate-950 dark:text-slate-100">{problem.title}</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {problem.pattern} • {problem.difficulty}
                 </p>
               </div>
-              <span className="text-sm text-slate-500">{formatDate(problem.createdAt)}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{formatDate(problem.createdAt)}</span>
             </div>
           </Link>
         ))}

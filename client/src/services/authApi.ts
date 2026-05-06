@@ -22,24 +22,20 @@ export type SignupPayload = {
   password: string;
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5050';
-
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
 
-  const data = (await response.json().catch(() => ({}))) as { message?: string };
-
-  if (!response.ok) {
-    throw new Error(data.message ?? 'Request failed. Please try again.');
+    return await parseApiResponse<T>(response, 'Request failed. Please try again.');
+  } catch (error) {
+    throw new Error(normalizeApiError(error));
   }
-
-  return data as T;
 }
 
 export function signupUser(payload: SignupPayload) {
@@ -74,3 +70,4 @@ export function logoutUser(token: string | null) {
       : undefined,
   });
 }
+import { API_BASE_URL, normalizeApiError, parseApiResponse } from '../utils/apiError';

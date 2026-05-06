@@ -2,13 +2,18 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { DryRunTable } from '../components/dashboard/DryRunTable';
+import { ErrorAlert } from '../components/common/ErrorAlert';
+import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { NotesGenerator } from '../components/notes/NotesGenerator';
 import { PageShell } from '../components/PageShell';
 import { DSAVisualizer } from '../components/visualizer/DSAVisualizer';
+import { useToast } from '../context/ToastContext';
 import {
   deleteSavedProblem,
   getSavedProblemById,
   type SavedProblem,
 } from '../services/savedProblemApi';
+import type { AnalysisResult } from '../types/analysis';
 
 function TextSection({ title, children }: { title: string; children?: string | null }) {
   if (!children) {
@@ -45,9 +50,31 @@ function ListSection({ title, items }: { title: string; items?: string[] | null 
   );
 }
 
+function buildAnalysisResultFromSavedProblem(savedProblem: SavedProblem): AnalysisResult {
+  return {
+    problemSummary: savedProblem.explanation?.problemSummary ?? '',
+    questionExplanation: savedProblem.explanation?.questionExplanation ?? '',
+    hinglishExplanation: savedProblem.explanation?.hinglishExplanation ?? '',
+    pattern: savedProblem.pattern ?? '',
+    difficulty: savedProblem.difficulty ?? '',
+    timeComplexity: savedProblem.timeComplexity ?? '',
+    spaceComplexity: savedProblem.spaceComplexity ?? '',
+    bruteForceApproach: savedProblem.explanation?.bruteForceApproach ?? '',
+    betterApproach: savedProblem.explanation?.betterApproach ?? '',
+    optimizedApproach: savedProblem.explanation?.optimizedApproach ?? '',
+    steps: savedProblem.visualizationSteps ?? [],
+    dryRunTable: savedProblem.dryRunTable ?? [],
+    bugsOrWarnings: savedProblem.bugsOrWarnings ?? [],
+    edgeCases: savedProblem.edgeCases ?? [],
+    similarProblems: savedProblem.similarProblems ?? [],
+    quizQuestions: savedProblem.quizQuestions ?? [],
+  };
+}
+
 export function SavedProblemDetail() {
   const { problemId } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [savedProblem, setSavedProblem] = useState<SavedProblem | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +102,10 @@ export function SavedProblemDetail() {
       } catch (caughtError) {
         const message =
           caughtError instanceof Error ? caughtError.message : 'Unable to load saved problem.';
-        if (isMounted) setError(message);
+        if (isMounted) {
+          setError(message);
+          showToast(message, 'error');
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -86,7 +116,7 @@ export function SavedProblemDetail() {
     return () => {
       isMounted = false;
     };
-  }, [problemId]);
+  }, [problemId, showToast]);
 
   async function handleDelete() {
     if (!problemId || isDeleting) return;
@@ -96,11 +126,13 @@ export function SavedProblemDetail() {
 
     try {
       await deleteSavedProblem(problemId);
+      showToast('Deleted successfully.', 'success');
       navigate('/history');
     } catch (caughtError) {
       const message =
         caughtError instanceof Error ? caughtError.message : 'Unable to delete saved problem.';
       setError(message);
+      showToast(message, 'error');
       setIsDeleting(false);
     }
   }
@@ -113,7 +145,7 @@ export function SavedProblemDetail() {
       <div className="flex flex-wrap gap-3">
         <Link
           to="/history"
-          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to history
@@ -123,7 +155,8 @@ export function SavedProblemDetail() {
             type="button"
             disabled={isDeleting}
             onClick={() => void handleDelete()}
-            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/30 dark:bg-slate-900"
+            aria-label="Delete saved problem"
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
             {isDeleting ? 'Deleting...' : 'Delete'}
@@ -131,16 +164,10 @@ export function SavedProblemDetail() {
         ) : null}
       </div>
 
-      {error ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
+      <ErrorAlert message={error} />
 
       {isLoading ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-          Loading saved problem...
-        </div>
+        <LoadingSkeleton label="Loading saved problem..." />
       ) : savedProblem ? (
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -215,6 +242,16 @@ export function SavedProblemDetail() {
           <ListSection title="Bugs or warnings" items={savedProblem.bugsOrWarnings} />
           <ListSection title="Edge cases" items={savedProblem.edgeCases} />
           <ListSection title="Similar problems" items={savedProblem.similarProblems} />
+
+          <section>
+            <NotesGenerator
+              analysisResult={buildAnalysisResultFromSavedProblem(savedProblem)}
+              title={savedProblem.title}
+              problemStatement={savedProblem.problemStatement ?? ''}
+              code={savedProblem.code}
+              languageMode="english"
+            />
+          </section>
 
           {savedProblem.quizQuestions && savedProblem.quizQuestions.length > 0 ? (
             <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">

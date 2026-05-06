@@ -1,5 +1,9 @@
 import { BookOpenCheck, Layers, Timer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { EmptyState } from '../components/common/EmptyState';
+import { ErrorAlert } from '../components/common/ErrorAlert';
+import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { RetryButton } from '../components/common/RetryButton';
 import { ComplexityStats } from '../components/stats/ComplexityStats';
 import { DifficultyBreakdown } from '../components/stats/DifficultyBreakdown';
 import { RecentProblems } from '../components/stats/RecentProblems';
@@ -13,52 +17,42 @@ export function Progress() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadStats = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const result = await getStatsOverview();
 
-    async function loadStats() {
-      try {
-        const result = await getStatsOverview();
-
-        if (isMounted) {
-          setOverview(result);
-          setError('');
-        }
-      } catch (caughtError) {
-        const message =
-          caughtError instanceof Error ? caughtError.message : 'Unable to load progress stats.';
-        if (isMounted) setError(message);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+      setOverview(result);
+      setError('');
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error ? caughtError.message : 'Unable to load progress stats.';
+      setError(message);
+    } finally {
+      setIsLoading(false);
     }
-
-    void loadStats();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadStats();
+  }, [loadStats]);
 
   return (
     <PageShell
       title="Progress"
       description="Track your topic coverage, difficulty mix, and learning patterns from saved analyses."
     >
-      {error ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
+      <ErrorAlert message={error} />
 
       {isLoading ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-          Loading progress stats...
-        </div>
+        <LoadingSkeleton label="Loading progress stats..." />
       ) : !overview || overview.totalProblems === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600 shadow-sm">
-          Save some analyses to see your progress.
-        </div>
+        <EmptyState
+          title="No progress yet"
+          description="Save analyses to unlock topic progress, difficulty mix, and complexity trends."
+          action={error ? <RetryButton onRetry={() => void loadStats()} /> : undefined}
+        />
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">

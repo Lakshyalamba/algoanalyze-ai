@@ -1,5 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5050';
-const tokenStorageKey = 'algoanalyze_token';
+import { API_BASE_URL, getStoredToken, normalizeApiError, parseApiResponse } from '../utils/apiError';
 
 export type StatsGroup = {
   name: string;
@@ -32,19 +31,17 @@ export type StatsOverview = {
 };
 
 export async function getStatsOverview() {
-  const token = localStorage.getItem(tokenStorageKey);
-  const response = await fetch(`${API_BASE_URL}/api/stats/overview`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+  try {
+    const token = getStoredToken();
+    const response = await fetch(`${API_BASE_URL}/api/stats/overview`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
-  const data = (await response.json().catch(() => ({}))) as { message?: string };
-
-  if (!response.ok) {
-    throw new Error(data.message ?? 'Unable to load progress stats.');
+    return await parseApiResponse<StatsOverview>(response, 'Unable to load progress stats.');
+  } catch (error) {
+    throw new Error(normalizeApiError(error, 'Unable to load progress stats.'));
   }
-
-  return data as StatsOverview;
 }
