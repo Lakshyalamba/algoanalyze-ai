@@ -1,0 +1,136 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
+import type { AnalysisStep } from '../../types/analysis';
+import { ArrayVisualizer } from './ArrayVisualizer';
+import { AnnotationCard } from './AnnotationCard';
+import { DPVisualizer } from './DPVisualizer';
+import { GraphVisualizer } from './GraphVisualizer';
+import { HeapVisualizer } from './HeapVisualizer';
+import { LinkedListVisualizer } from './LinkedListVisualizer';
+import { NoneVisualizer } from './NoneVisualizer';
+import { QueueVisualizer } from './QueueVisualizer';
+import { RecursionVisualizer } from './RecursionVisualizer';
+import { SortingVisualizer } from './SortingVisualizer';
+import { StackVisualizer } from './StackVisualizer';
+import { StepControls } from './StepControls';
+import { TreeVisualizer } from './TreeVisualizer';
+import { VariableTracker } from './VariableTracker';
+import { getState } from './visualizerUtils';
+
+type DSAVisualizerProps = {
+  steps: AnalysisStep[];
+};
+
+export function DSAVisualizer({ steps }: DSAVisualizerProps) {
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+
+  const safeSteps = useMemo(() => (Array.isArray(steps) ? steps : []), [steps]);
+  const currentStep = safeSteps[currentStepIndex];
+  const currentState = currentStep ? getState(currentStep) : null;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentStepIndex(0);
+    setIsPlaying(false);
+  }, [safeSteps]);
+
+  useEffect(() => {
+    if (!isPlaying || safeSteps.length <= 1) {
+      return;
+    }
+
+    const delay = 1200 / speed;
+    const timer = window.setTimeout(() => {
+      setCurrentStepIndex((index) => {
+        if (index >= safeSteps.length - 1) {
+          setIsPlaying(false);
+          return index;
+        }
+        return index + 1;
+      });
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [currentStepIndex, isPlaying, safeSteps.length, speed]);
+
+  if (safeSteps.length === 0 || !currentStep || !currentState) {
+    return (
+      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+        No visualization steps generated.
+      </div>
+    );
+  }
+
+  const totalSteps = safeSteps.length;
+
+  return (
+    <div className="space-y-5">
+      <StepControls
+        currentStepIndex={currentStepIndex}
+        totalSteps={totalSteps}
+        isPlaying={isPlaying}
+        speed={speed}
+        onPrevious={() => setCurrentStepIndex((index) => Math.max(0, index - 1))}
+        onNext={() => setCurrentStepIndex((index) => Math.min(totalSteps - 1, index + 1))}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onReset={() => {
+          setCurrentStepIndex(0);
+          setIsPlaying(false);
+        }}
+        onSpeedChange={setSpeed}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <span className="rounded-full bg-slate-950 px-3 py-1 font-semibold text-white">
+                Step {currentStepIndex + 1} / {totalSteps}
+              </span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-700">
+                Line {currentStep.line}
+              </span>
+              <span className="rounded-full bg-brand-50 px-3 py-1 font-semibold capitalize text-brand-600">
+                {currentState.type}
+              </span>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${currentStepIndex}-${currentState.type}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderVisualizer(currentState)}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="space-y-4">
+          <AnnotationCard annotation={currentStep.annotation} />
+          <VariableTracker variables={currentStep.variables ?? {}} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderVisualizer(state: NonNullable<ReturnType<typeof getState>>) {
+  if (state.type === 'array') return <ArrayVisualizer state={state} />;
+  if (state.type === 'stack') return <StackVisualizer state={state} />;
+  if (state.type === 'queue') return <QueueVisualizer state={state} />;
+  if (state.type === 'linked-list') return <LinkedListVisualizer state={state} />;
+  if (state.type === 'tree') return <TreeVisualizer state={state} />;
+  if (state.type === 'graph') return <GraphVisualizer state={state} />;
+  if (state.type === 'recursion') return <RecursionVisualizer state={state} />;
+  if (state.type === 'dp') return <DPVisualizer state={state} />;
+  if (state.type === 'sorting') return <SortingVisualizer state={state} />;
+  if (state.type === 'heap') return <HeapVisualizer state={state} />;
+  return <NoneVisualizer />;
+}
