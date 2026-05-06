@@ -1,4 +1,5 @@
 type ServerEnv = {
+  host: string;
   port: number;
   clientUrl: string;
   databaseUrl: string;
@@ -47,6 +48,7 @@ export function loadEnv(): ServerEnv {
   }
 
   return {
+    host: process.env.HOST?.trim() || '127.0.0.1',
     port: parsePort(process.env.PORT),
     clientUrl: process.env.CLIENT_URL?.trim() || 'http://localhost:5173',
     databaseUrl: process.env.DATABASE_URL!.trim(),
