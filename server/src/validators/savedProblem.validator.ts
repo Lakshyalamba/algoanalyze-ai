@@ -5,7 +5,11 @@ const jsonValueSchema = z.unknown();
 export const savedProblemSchema = z.object({
   title: z.string().trim().min(1, 'Title is required.'),
   problemStatement: z.string().trim().optional(),
-  code: z.string().trim().min(1, 'Code is required.'),
+  code: z
+    .string()
+    .trim()
+    .min(1, 'Code is required.')
+    .max(50_000, 'Code is too large. Please keep saved code under 50,000 characters.'),
   sampleInput: z.string().trim().optional(),
   expectedOutput: z.string().trim().optional(),
   pattern: z.string().trim().optional(),
