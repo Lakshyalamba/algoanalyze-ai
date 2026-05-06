@@ -324,6 +324,8 @@ Set this environment variable in the frontend hosting dashboard:
 VITE_API_BASE_URL=https://your-backend-url.com
 ```
 
+Use the backend origin only. Do not include `/api`; the frontend adds API route paths.
+
 Common frontend commands:
 
 ```bash

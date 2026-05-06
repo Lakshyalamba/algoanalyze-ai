@@ -5,13 +5,18 @@ export const tokenStorageKey = 'algoanalyze_token';
 const fallbackApiBaseUrl = 'http://localhost:5000';
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
+function normalizeApiBaseUrl(value: string) {
+  const trimmedValue = value.trim().replace(/\/+$/, '');
+  return trimmedValue.endsWith('/api') ? trimmedValue.slice(0, -4) : trimmedValue;
+}
+
 if (!configuredApiBaseUrl?.trim()) {
   console.warn(
     `VITE_API_BASE_URL is missing. Falling back to ${fallbackApiBaseUrl}.`,
   );
 }
 
-export const API_BASE_URL = configuredApiBaseUrl?.trim() || fallbackApiBaseUrl;
+export const API_BASE_URL = normalizeApiBaseUrl(configuredApiBaseUrl || fallbackApiBaseUrl);
 
 type ApiErrorBody = {
   message?: string;
