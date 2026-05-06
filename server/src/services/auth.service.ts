@@ -1,19 +1,13 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import type { AuthUser } from '../types/auth.js';
+import { AppError } from '../utils/AppError.js';
 import { signJwt } from '../utils/jwt.js';
 import type { LoginInput, SignupInput } from '../validators/auth.validator.js';
 
 const passwordSaltRounds = 12;
 
-export class AuthError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode = 400,
-  ) {
-    super(message);
-  }
-}
+export class AuthError extends AppError {}
 
 function toAuthUser(user: {
   id: string;
@@ -103,4 +97,3 @@ export async function getUserById(userId: string) {
 
   return user ? toAuthUser(user) : null;
 }
-
