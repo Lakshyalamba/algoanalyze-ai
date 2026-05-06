@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String?
+  email         String         @unique
+  passwordHash  String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  savedProblems SavedProblem[]
+}
+
+model SavedProblem {
+  id                 String   @id @default(uuid())
+  userId             String
+  title              String
+  problemStatement   String?
+  code               String
+  sampleInput        String?
+  expectedOutput     String?
+  pattern            String?
+  difficulty         String?
+  timeComplexity     String?
+  spaceComplexity    String?
+  explanation        Json?
+  visualizationSteps Json?
+  dryRunTable        Json?
+  bugsOrWarnings     Json?
+  edgeCases          Json?
+  similarProblems    Json?
+  quizQuestions      Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([pattern])
+  @@index([difficulty])
+  @@index([createdAt])
+}
