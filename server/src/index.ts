@@ -27,6 +27,8 @@ try {
 }
 
 const app = express();
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = '0.0.0.0';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -119,8 +121,9 @@ app.use('/api/stats', statsRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const server = app.listen(env.port, env.host, () => {
-  console.log(`AlgoAnalyze AI API listening on http://${env.host}:${env.port}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`AlgoAnalyze AI API listening on port ${PORT}`);
+  console.log(`Host: ${HOST}`);
   console.log(`Allowed client origin: ${env.clientUrl}`);
   console.log(`Allow Vercel previews: ${env.allowVercelPreviews}`);
   console.log(`Environment: ${process.env.NODE_ENV ?? 'development'}`);

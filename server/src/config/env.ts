@@ -1,6 +1,4 @@
 type ServerEnv = {
-  host: string;
-  port: number;
   clientUrl: string;
   allowVercelPreviews: boolean;
   databaseUrl: string;
@@ -16,18 +14,9 @@ function getMissingRequiredVariables() {
   return requiredVariables.filter((key) => !process.env[key]?.trim());
 }
 
-function parsePort(value: string | undefined) {
-  const port = Number(value ?? 5000);
-
-  if (!Number.isInteger(port) || port <= 0) {
-    throw new Error('Invalid PORT. Expected a positive integer, for example PORT=5000.');
-  }
-
-  return port;
-}
-
 export function loadEnv(): ServerEnv {
   const missingVariables = getMissingRequiredVariables();
+  const clientUrl = process.env.CLIENT_URL?.trim();
 
   if (missingVariables.length > 0) {
     throw new Error(
@@ -48,10 +37,12 @@ export function loadEnv(): ServerEnv {
     );
   }
 
+  if (process.env.NODE_ENV === 'production' && !clientUrl) {
+    throw new Error('Missing CLIENT_URL. Set CLIENT_URL to the deployed frontend URL in production.');
+  }
+
   return {
-    host: process.env.HOST?.trim() || '127.0.0.1',
-    port: parsePort(process.env.PORT),
-    clientUrl: process.env.CLIENT_URL?.trim() || 'http://localhost:5173',
+    clientUrl: clientUrl || 'http://localhost:5173',
     allowVercelPreviews: process.env.ALLOW_VERCEL_PREVIEWS === 'true',
     databaseUrl: process.env.DATABASE_URL!.trim(),
     jwtSecret: process.env.JWT_SECRET!.trim(),
