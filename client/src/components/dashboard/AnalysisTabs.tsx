@@ -8,6 +8,7 @@ import {
   Table2,
 } from 'lucide-react';
 import type { AnalysisResult, LanguageMode } from '../../types/analysis';
+import { ChatbotPanel } from '../chat/ChatbotPanel';
 import { BugsPanel } from './BugsPanel';
 import { DryRunTable } from './DryRunTable';
 import { EdgeCasesPanel } from './EdgeCasesPanel';
@@ -29,7 +30,14 @@ type AnalysisTabsProps = {
   activeTab: AnalysisTab;
   analysisResult: AnalysisResult | null;
   languageMode: LanguageMode;
+  activeStepIndex: number;
+  codeChangedAfterAnalysis: boolean;
+  problemStatement: string;
+  code: string;
+  sampleInput: string;
+  expectedOutput: string;
   onActiveTabChange: (tab: AnalysisTab) => void;
+  onStepChange: (stepIndex: number) => void;
 };
 
 const tabs = [
@@ -46,7 +54,14 @@ export function AnalysisTabs({
   activeTab,
   analysisResult,
   languageMode,
+  activeStepIndex,
+  codeChangedAfterAnalysis,
+  problemStatement,
+  code,
+  sampleInput,
+  expectedOutput,
   onActiveTabChange,
+  onStepChange,
 }: AnalysisTabsProps) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -81,31 +96,86 @@ export function AnalysisTabs({
       </div>
 
       <div className="min-h-[420px] p-5">
-        {!analysisResult ? <EmptyState /> : renderTab(activeTab, analysisResult, languageMode)}
+        {!analysisResult && activeTab !== 'chatbot' ? (
+          <EmptyState />
+        ) : (
+          renderTab({
+            tab: activeTab,
+            analysisResult,
+            languageMode,
+            activeStepIndex,
+            codeChangedAfterAnalysis,
+            problemStatement,
+            code,
+            sampleInput,
+            expectedOutput,
+            onStepChange,
+          })
+        )}
       </div>
     </section>
   );
 }
 
-function renderTab(tab: AnalysisTab, analysisResult: AnalysisResult, languageMode: LanguageMode) {
+type RenderTabParams = {
+  tab: AnalysisTab;
+  analysisResult: AnalysisResult | null;
+  languageMode: LanguageMode;
+  activeStepIndex: number;
+  codeChangedAfterAnalysis: boolean;
+  problemStatement: string;
+  code: string;
+  sampleInput: string;
+  expectedOutput: string;
+  onStepChange: (stepIndex: number) => void;
+};
+
+function renderTab({
+  tab,
+  analysisResult,
+  languageMode,
+  activeStepIndex,
+  codeChangedAfterAnalysis,
+  problemStatement,
+  code,
+  sampleInput,
+  expectedOutput,
+  onStepChange,
+}: RenderTabParams) {
+  if (tab === 'chatbot') {
+    return (
+      <ChatbotPanel
+        problemStatement={problemStatement}
+        code={code}
+        sampleInput={sampleInput}
+        expectedOutput={expectedOutput}
+        languageMode={languageMode}
+        analysisContext={analysisResult}
+      />
+    );
+  }
+
+  if (!analysisResult) {
+    return <EmptyState />;
+  }
+
   if (tab === 'explanation') {
     return <ExplanationPanel analysisResult={analysisResult} languageMode={languageMode} />;
   }
 
   if (tab === 'visualizer') {
-    return <DSAVisualizer steps={analysisResult.steps} />;
+    return (
+      <DSAVisualizer
+        steps={analysisResult.steps}
+        activeStepIndex={activeStepIndex}
+        codeChangedAfterAnalysis={codeChangedAfterAnalysis}
+        onStepChange={onStepChange}
+      />
+    );
   }
 
   if (tab === 'dryRun') {
     return <DryRunTable rows={analysisResult.dryRunTable} />;
-  }
-
-  if (tab === 'chatbot') {
-    return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-        Gemini chatbot will be added in the next step.
-      </div>
-    );
   }
 
   if (tab === 'bugs') {
