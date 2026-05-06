@@ -1,288 +1,427 @@
 # AlgoAnalyze AI
 
-AlgoAnalyze AI is a full-stack TypeScript project scaffold with a React/Vite client and an Express API server.
+AI-powered DSA visualizer and tutor that turns Python DSA code into step-by-step visualizations, dry runs, short annotations, and Gemini-powered English/Hinglish explanations.
+
+## Project Overview
+
+AlgoAnalyze AI is a full-stack learning platform for students who want to understand how data structures and algorithms work internally. Learners can enter a DSA problem statement, write Python code, and receive structured analysis that explains the code, identifies the pattern, estimates complexity, and converts execution into visual steps.
+
+The project is designed for beginners, interview-preparation students, and anyone learning DSA through code tracing. Instead of forcing learners to manually dry run every variable, pointer, stack frame, or table update, AlgoAnalyze AI presents the execution in a guided and visual format.
+
+Gemini AI helps by converting code and problem context into beginner-friendly explanations, English/Hinglish summaries, approach breakdowns, bug warnings, edge cases, similar problems, quiz questions, and concise notes.
+
+## Problem Statement
+
+Students often struggle to understand how DSA code executes internally. Manual dry runs are useful, but they are hard to follow when the code involves recursion, nested loops, dynamic programming tables, trees, graphs, or pointer-like logic.
+
+Beginners also need explanations that are simple, visual, and language-friendly. AlgoAnalyze AI solves this by combining visual execution, dry run tables, current-line highlighting, and Gemini-powered English/Hinglish explanations in one learning dashboard.
+
+## Key Features
+
+- Python DSA code editor
+- Problem statement input
+- Gemini-powered code analysis
+- Gemini chatbot
+- English/Hinglish explanation mode
+- Step-by-step visualizer
+- Array visualizer
+- Stack visualizer
+- Queue visualizer
+- Linked list visualizer
+- Tree visualizer
+- Graph visualizer
+- Recursion visualizer
+- DP table visualizer
+- Sorting visualizer
+- Heap visualizer
+- Variable tracker
+- Current line highlighter
+- Dry run table
+- Pattern detection
+- Difficulty detection
+- Time and space complexity analysis
+- Brute force, better, and optimized approach
+- Bug finder
+- Edge case generator
+- Similar problem suggestions
+- Quiz mode
+- Notes generator
+- Saved history
+- Progress dashboard
 
 ## Tech Stack
 
-- Frontend: React, Vite, TypeScript
-- Backend: Node.js, Express, TypeScript
-- Styling: Tailwind CSS
-- Routing: React Router
-- Code editor: Monaco Editor
-- Animations: Framer Motion
-- Planned integrations: Neon PostgreSQL, Prisma, JWT auth, and Gemini API
+### Frontend
 
-## Project Structure
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- Monaco Editor
+- Framer Motion
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+- JWT
+- Zod
+- Helmet
+- Rate limiting
+
+### Database
+
+- Neon PostgreSQL
+- Prisma ORM
+
+### AI
+
+- Gemini API
+
+## Architecture
+
+```text
+User
+  -> React Dashboard
+  -> Express API
+  -> Gemini API for analysis/chat
+  -> Prisma ORM
+  -> Neon PostgreSQL
+```
+
+- The frontend never accesses the Gemini API directly.
+- The Gemini API key is stored only on the backend.
+- JWT protects private routes and user-specific data.
+- Prisma handles database access and schema management.
+
+## Folder Structure
 
 ```text
 algoanalyze-ai/
   client/
+    src/
+      components/
+      pages/
+      services/
+      context/
+      utils/
   server/
-  README.md
-  .gitignore
+    src/
+      controllers/
+      routes/
+      services/
+      middleware/
+      validators/
+      prompts/
+      lib/
+      utils/
+    prisma/
+      schema.prisma
 ```
 
-## Setup
+## Environment Variables
 
-Install dependencies for each app:
+Create local environment files from the examples:
+
+```bash
+cp client/.env.example client/.env
+cp server/.env.example server/.env
+```
+
+### Client `.env`
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+### Server `.env`
+
+```env
+PORT=5000
+CLIENT_URL=http://localhost:5173
+DATABASE_URL=
+JWT_SECRET=
+JWT_EXPIRES_IN=7d
+GEMINI_API_KEY=
+```
+
+### Security Notes
+
+- Never commit `.env` files.
+- Never expose `GEMINI_API_KEY` in the frontend.
+- Never use `VITE_GEMINI_API_KEY`.
+- Keep `JWT_SECRET` private.
+- Keep the Neon database URL private.
+
+## Local Setup
+
+### Clone Repository
+
+```bash
+git clone <repo-url>
+cd algoanalyze-ai
+```
+
+### Install Client
 
 ```bash
 cd client
 npm install
+```
 
+### Install Server
+
+```bash
 cd ../server
 npm install
 ```
 
-Create environment files:
+### Setup Prisma
 
 ```bash
-cp client/.env.example client/.env
-cp server/.env.example server/.env
+npx prisma generate
+npx prisma migrate dev --name init
 ```
 
-### Client Environment
-
-Create `client/.env`:
+### Run Backend
 
 ```bash
-cp client/.env.example client/.env
+npm run dev
 ```
 
-Expected client variable:
+The backend runs on `http://localhost:5000`.
 
-```env
-VITE_API_BASE_URL=http://localhost:5050
-```
+### Run Frontend
 
-Only `VITE_` variables are exposed to the browser. Do not add Gemini or JWT secrets to the client environment.
-
-### Server Environment
-
-Create `server/.env`:
+Open a second terminal:
 
 ```bash
-cp server/.env.example server/.env
+cd client
+npm run dev
 ```
 
-Expected server variables:
+The frontend runs on `http://localhost:5173`.
 
-```env
-PORT=5050
-CLIENT_URL=http://localhost:5173
-
-DATABASE_URL=
-
-JWT_SECRET=
-JWT_EXPIRES_IN=7d
-
-GEMINI_API_KEY=
-```
-
-`DATABASE_URL` and `JWT_SECRET` are required. The API will fail at startup with a clear error if either value is missing.
-
-`GEMINI_API_KEY` is optional for now. If it is missing, the server still starts and future AI routes should return mock responses.
-
-`JWT_EXPIRES_IN` controls token lifetime and defaults to `7d`.
-
-### Neon DATABASE_URL
+## Neon PostgreSQL Setup
 
 1. Create a Neon project at `https://neon.tech`.
-2. Open the project dashboard.
-3. Go to the connection details for your database.
-4. Select the Node.js or Prisma connection string.
-5. Copy the PostgreSQL connection string into `server/.env` as `DATABASE_URL`.
+2. Create or select a PostgreSQL database.
+3. Copy the connection string from the Neon dashboard.
+4. Add it to `server/.env` as `DATABASE_URL`.
+5. Run the Prisma migration:
 
-Example format:
+```bash
+cd server
+npx prisma migrate dev --name init
+```
+
+Example connection string format:
 
 ```env
 DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
 ```
 
-For Neon pooled connections, the URL may include the pooler host and extra parameters:
-
-```env
-DATABASE_URL=postgresql://user:password@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-```
-
-Keep `DATABASE_URL` in `server/.env` only.
-
-### Prisma Setup
-
-Prisma is configured in `server/prisma/schema.prisma` with PostgreSQL as the datasource:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-The backend exports a singleton Prisma Client from `server/src/lib/prisma.ts`.
-
-Generate Prisma Client:
-
-```bash
-cd server
-npm run prisma:generate
-```
-
-Create and apply a development migration:
-
-```bash
-cd server
-npm run prisma:migrate -- --name init
-```
-
-Push schema changes without creating a migration:
-
-```bash
-cd server
-npm run prisma:push
-```
-
-Open Prisma Studio:
-
-```bash
-cd server
-npm run prisma:studio
-```
-
-### Gemini API Key
+## Gemini API Setup
 
 1. Open Google AI Studio at `https://aistudio.google.com`.
-2. Create or select an API key.
-3. Add it only to `server/.env` as `GEMINI_API_KEY`.
+2. Create a Gemini API key.
+3. Add it to `server/.env` as `GEMINI_API_KEY`.
+4. Keep the key server-side only.
 
-Never create `VITE_GEMINI_API_KEY`; Gemini requests must go through the Node.js backend.
+All Gemini requests should go through the Express API. The React client should only call the backend.
 
-Run the client:
+## API Routes
+
+### Auth
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
+
+### AI
+
+- `POST /api/analyze-code`
+- `POST /api/chat`
+
+### Saved Problems
+
+- `POST /api/saved-problems`
+- `GET /api/saved-problems`
+- `GET /api/saved-problems/:id`
+- `DELETE /api/saved-problems/:id`
+
+### Stats
+
+- `GET /api/stats/overview`
+
+### Health
+
+- `GET /health`
+
+## Database Models
+
+### User
+
+- `id`
+- `name`
+- `email`
+- `passwordHash`
+- `createdAt`
+- `updatedAt`
+
+### SavedProblem
+
+- `id`
+- `userId`
+- `title`
+- `problemStatement`
+- `code`
+- `sampleInput`
+- `expectedOutput`
+- `pattern`
+- `difficulty`
+- `timeComplexity`
+- `spaceComplexity`
+- `explanation`
+- `visualizationSteps`
+- `dryRunTable`
+- `bugsOrWarnings`
+- `edgeCases`
+- `similarProblems`
+- `quizQuestions`
+
+## Gemini Response Schema
+
+The main `POST /api/analyze-code` response includes:
+
+- `problemSummary`
+- `questionExplanation`
+- `hinglishExplanation`
+- `pattern`
+- `difficulty`
+- `timeComplexity`
+- `spaceComplexity`
+- `approaches`
+- `steps`
+- `dryRunTable`
+- `bugsOrWarnings`
+- `edgeCases`
+- `similarProblems`
+- `quizQuestions`
+
+## Deployment Guide
+
+### Frontend Deployment
+
+Deploy the `client` app to Vercel or Netlify.
+
+Set this environment variable in the frontend hosting dashboard:
+
+```env
+VITE_API_BASE_URL=https://your-backend-url.com
+```
+
+Common frontend commands:
 
 ```bash
-cd client
-npm run dev
+npm install
+npm run build
 ```
 
-Run the server:
+Use `client/dist` as the production output directory.
+
+### Backend Deployment
+
+Deploy the `server` app to Render or Railway.
+
+Add these server environment variables:
+
+```env
+PORT=5000
+CLIENT_URL=https://your-frontend-url.com
+DATABASE_URL=
+JWT_SECRET=
+JWT_EXPIRES_IN=7d
+GEMINI_API_KEY=
+```
+
+Recommended build command:
 
 ```bash
-cd server
-npm run dev
+npm install && npm run prisma:generate && npm run build
 ```
 
-The client defaults to `http://localhost:5173`.
-The server defaults to `http://localhost:5050`.
-
-## Health Check
+Recommended start command:
 
 ```bash
-curl http://localhost:5050/health
+npm run start
 ```
 
-## JWT Authentication
+### Production Database
 
-Authentication uses Prisma, Neon PostgreSQL, bcrypt password hashing, and stateless JWT tokens.
+Use the production Neon `DATABASE_URL` on the deployed backend.
 
-Auth routes:
-
-```text
-POST /api/auth/signup
-POST /api/auth/login
-GET  /api/auth/me
-POST /api/auth/logout
-```
-
-Signup body:
-
-```json
-{
-  "name": "Ada Lovelace",
-  "email": "ada@example.com",
-  "password": "password123"
-}
-```
-
-Login body:
-
-```json
-{
-  "email": "ada@example.com",
-  "password": "password123"
-}
-```
-
-Successful signup and login responses include:
-
-```json
-{
-  "user": {
-    "id": "user-id",
-    "name": "Ada Lovelace",
-    "email": "ada@example.com",
-    "createdAt": "timestamp",
-    "updatedAt": "timestamp"
-  },
-  "token": "jwt-token"
-}
-```
-
-Protected requests must include the token:
+Run migrations during deployment:
 
 ```bash
-curl http://localhost:5050/api/auth/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+npx prisma migrate deploy
 ```
 
-Logout is stateless:
+## Scripts
 
-```bash
-curl -X POST http://localhost:5050/api/auth/logout
-```
+### Client
 
-The frontend stores the JWT in `localStorage` using the key `algoanalyze_token`. On app load, it reads the token and calls `GET /api/auth/me`. If the token is invalid or expired, the frontend removes it and redirects protected pages to login.
+- `npm run dev` - start the Vite development server
+- `npm run build` - type-check and build the production frontend
+- `npm run preview` - preview the production build locally
 
-Protected frontend pages:
+### Server
 
-- `/dashboard`
-- `/history`
-- `/saved-problems/:problemId`
-- `/settings`
+- `npm run dev` - start the Express API in development mode
+- `npm run build` - compile TypeScript to `dist`
+- `npm run start` - run the compiled backend
+- `npm run prisma:generate` - generate Prisma Client
+- `npm run prisma:migrate` - create and apply a development migration
+- `npm run prisma:studio` - open Prisma Studio
+- `npm run prisma:push` - push schema changes without creating a migration
 
-## Code Analysis API
+## Resume Highlights
 
-The dashboard calls the backend-only Gemini integration through a protected route:
+This project demonstrates:
 
-```text
-POST /api/analyze-code
-```
+- Full-stack development with React and Node.js
+- AI integration using Gemini API
+- Secure backend API design
+- JWT authentication
+- PostgreSQL database design
+- Prisma ORM
+- DSA visualization logic
+- Prompt engineering
+- Error handling and production readiness
+- User-focused learning experience
 
-Request body:
+## Screenshots
 
-```json
-{
-  "title": "Two Sum",
-  "problemStatement": "Given an array of integers...",
-  "code": "class Solution:\\n    def solve(self):\\n        pass",
-  "sampleInput": "nums=[2,7,11,15], target=9",
-  "expectedOutput": "[0,1]",
-  "languageMode": "english"
-}
-```
+Add project screenshots here:
 
-The request must include:
+- Landing Page
+- Dashboard
+- Visualizer
+- Chatbot
+- History
+- Progress Dashboard
 
-```bash
-Authorization: Bearer YOUR_JWT_TOKEN
-```
+## Future Improvements
 
-Gemini runs only in the Node.js backend using `GEMINI_API_KEY`. If the key is missing, Gemini is unavailable, or Gemini returns invalid JSON, the backend returns a safe fallback analysis response instead of crashing.
+- Multi-language code support
+- More accurate execution tracing
+- Real sandboxed Python execution
+- More advanced graph/tree animations
+- Collaborative learning rooms
+- More DSA topic templates
 
-## Security Notes
+## Contributing
 
-- Do not commit `.env` files.
-- Do not expose the Gemini API key in frontend code or any `VITE_` variable.
-- Do not expose `JWT_SECRET` in frontend code, logs, or client-visible responses.
-- Keep `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY` backend-only.
-- Never return `passwordHash` from API responses.
-
-Prisma is configured for Neon PostgreSQL and JWT auth routes are available. Gemini routes are intentionally not integrated yet.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow.
