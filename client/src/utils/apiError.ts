@@ -2,21 +2,49 @@ import type { AnalysisResult } from '../types/analysis';
 
 export const tokenStorageKey = 'algoanalyze_token';
 
-const fallbackApiBaseUrl = 'http://localhost:5000';
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
+function getFallbackApiBaseUrl() {
+  if (typeof window === 'undefined') {
+    return 'http://localhost:5000';
+  }
+
+  const hostname = window.location.hostname || 'localhost';
+  return `http://${hostname}:5000`;
+}
 
 function normalizeApiBaseUrl(value: string) {
   const trimmedValue = value.trim().replace(/\/+$/, '');
-  return trimmedValue.endsWith('/api') ? trimmedValue.slice(0, -4) : trimmedValue;
+  const withoutApiSuffix = trimmedValue.endsWith('/api') ? trimmedValue.slice(0, -4) : trimmedValue;
+
+  if (typeof window === 'undefined') {
+    return withoutApiSuffix;
+  }
+
+  try {
+    const url = new URL(withoutApiSuffix);
+    if (
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
+      window.location.hostname &&
+      url.hostname !== window.location.hostname
+    ) {
+      url.hostname = window.location.hostname;
+      return url.toString().replace(/\/+$/, '');
+    }
+  } catch {
+    return withoutApiSuffix;
+  }
+
+  return withoutApiSuffix;
 }
 
 if (!configuredApiBaseUrl?.trim()) {
   console.warn(
-    `VITE_API_BASE_URL is missing. Falling back to ${fallbackApiBaseUrl}.`,
+    `VITE_API_BASE_URL is missing. Falling back to ${getFallbackApiBaseUrl()}.`,
   );
 }
 
-export const API_BASE_URL = normalizeApiBaseUrl(configuredApiBaseUrl || fallbackApiBaseUrl);
+export const API_BASE_URL = normalizeApiBaseUrl(configuredApiBaseUrl || getFallbackApiBaseUrl());
 
 type ApiErrorBody = {
   message?: string;

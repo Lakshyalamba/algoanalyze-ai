@@ -41,8 +41,19 @@ function isAllowedCorsOrigin(origin: string | undefined) {
     return true;
   }
 
-  if (isDevelopment && origin === 'http://localhost:5173') {
-    return true;
+  if (isDevelopment) {
+    try {
+      const { hostname, port, protocol } = new URL(origin);
+      if (
+        protocol === 'http:' &&
+        (hostname === 'localhost' || hostname === '127.0.0.1') &&
+        ['5173', '5174', '5175'].includes(port)
+      ) {
+        return true;
+      }
+    } catch {
+      return false;
+    }
   }
 
   if (isProduction && env.allowVercelPreviews) {
