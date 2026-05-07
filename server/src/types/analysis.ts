@@ -42,9 +42,20 @@ export type DryRunRow = {
   explanation: string;
 };
 
+export type BugReport = {
+  title: string;
+  severity: 'Low' | 'Medium' | 'High';
+  explanation: string;
+  fix: string;
+  suggestedCode?: string;
+};
+
 export type QuizQuestion = {
   question: string;
-  answer: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  answer?: string;
 };
 
 export type AnalysisResult = {
@@ -60,7 +71,7 @@ export type AnalysisResult = {
   optimizedApproach: string;
   steps: AnalysisStep[];
   dryRunTable: DryRunRow[];
-  bugsOrWarnings: string[];
+  bugsOrWarnings: Array<string | BugReport>;
   edgeCases: string[];
   similarProblems: string[];
   quizQuestions: QuizQuestion[];
