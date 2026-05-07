@@ -70,7 +70,7 @@ export function AnalysisTabs({
   onStepChange,
 }: AnalysisTabsProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
         <h2 className="text-base font-semibold text-slate-950 dark:text-slate-100">Analysis results</h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Visualize, debug, revise, and ask follow-up questions.</p>
@@ -102,7 +102,7 @@ export function AnalysisTabs({
         </div>
       </div>
 
-      <div className="min-h-[420px] p-5">
+      <div className="min-h-[420px] min-w-0 p-5">
         {!analysisResult && activeTab !== 'chatbot' && activeTab !== 'notes' ? (
           <EmptyState />
         ) : (

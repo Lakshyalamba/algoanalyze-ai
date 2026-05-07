@@ -1,6 +1,8 @@
 import { BarChart3, BookOpenCheck, LayoutDashboard, LogOut, Menu, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { DottedBackground } from './common/DottedBackground';
+import { ThemeToggle } from './common/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -22,8 +24,8 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <DottedBackground className="min-h-screen text-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <NavLink to="/dashboard" className="flex items-center gap-3" aria-label="AlgoAnalyze AI dashboard">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-sm font-bold text-white shadow-sm dark:bg-brand-500">
@@ -57,6 +59,7 @@ export function AppLayout() {
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
+            <ThemeToggle compact />
             <div className="max-w-52 truncate text-right">
               <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {user?.name || 'Student'}
@@ -86,7 +89,7 @@ export function AppLayout() {
         </div>
 
         {isMobileMenuOpen ? (
-          <div className="border-t border-slate-200 bg-white px-4 py-4 md:hidden dark:border-slate-800 dark:bg-slate-950">
+          <div className="border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur md:hidden dark:border-slate-800 dark:bg-slate-950/95">
             <nav className="grid gap-2" aria-label="Mobile navigation">
               {navItems.map((item) => (
                 <NavLink
@@ -107,6 +110,9 @@ export function AppLayout() {
               ))}
             </nav>
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-3">
+                <ThemeToggle />
+              </div>
               <p className="truncate text-sm font-semibold">{user?.name || 'Student'}</p>
               <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
               <button
@@ -124,6 +130,6 @@ export function AppLayout() {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
         <Outlet />
       </main>
-    </div>
+    </DottedBackground>
   );
 }
