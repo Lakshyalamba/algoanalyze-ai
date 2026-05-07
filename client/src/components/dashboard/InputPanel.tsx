@@ -2,7 +2,8 @@ import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
 import { Eraser, FileCode2 } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { editor } from 'monaco-editor';
-import type { AnalysisResult, LanguageMode } from '../../types/analysis';
+import { useTheme } from '../../context/ThemeContext';
+import type { AnalysisResult } from '../../types/analysis';
 import { LoadingButton } from './LoadingButton';
 
 type InputPanelProps = {
@@ -11,7 +12,6 @@ type InputPanelProps = {
   code: string;
   sampleInput: string;
   expectedOutput: string;
-  languageMode: LanguageMode;
   analysisResult: AnalysisResult | null;
   activeStepIndex: number;
   codeChangedAfterAnalysis: boolean;
@@ -22,7 +22,6 @@ type InputPanelProps = {
   onCodeChange: (value: string) => void;
   onSampleInputChange: (value: string) => void;
   onExpectedOutputChange: (value: string) => void;
-  onLanguageModeChange: (value: LanguageMode) => void;
   onAnalyze: () => void;
   onClear: () => void;
 };
@@ -42,7 +41,6 @@ export function InputPanel({
   code,
   sampleInput,
   expectedOutput,
-  languageMode,
   analysisResult,
   activeStepIndex,
   codeChangedAfterAnalysis,
@@ -53,10 +51,10 @@ export function InputPanel({
   onCodeChange,
   onSampleInputChange,
   onExpectedOutputChange,
-  onLanguageModeChange,
   onAnalyze,
   onClear,
 }: InputPanelProps) {
+  const { theme } = useTheme();
   const editorRef = useRef<MonacoEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
@@ -121,7 +119,7 @@ export function InputPanel({
   }, [activeLine, hasActiveLine]);
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white dark:bg-brand-500">
           <FileCode2 className="h-5 w-5" aria-hidden="true" />
@@ -171,34 +169,19 @@ export function InputPanel({
                 </p>
               ) : null}
             </div>
-            <div className="rounded-md bg-slate-100 p-1 dark:bg-slate-950">
-              {(['english', 'hinglish'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => onLanguageModeChange(mode)}
-                  className={`rounded px-3 py-1.5 text-xs font-semibold capitalize transition ${
-                    languageMode === mode
-                      ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-100'
-                      : 'text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
           </div>
           {codeChangedAfterAnalysis ? (
             <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
               Code changed after analysis. Re-run analysis for accurate steps.
             </div>
           ) : null}
-          <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
+          <div className="max-w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
             <Editor
               height="350px"
+              width="100%"
               defaultLanguage="python"
               language="python"
-              theme="vs-dark"
+              theme={theme === 'dark' ? 'vs-dark' : 'light'}
               value={code}
               onMount={handleEditorMount}
               onChange={(value) => onCodeChange(value ?? '')}

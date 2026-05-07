@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { AnalysisTabs, type AnalysisTab } from '../components/dashboard/AnalysisTabs';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
@@ -16,19 +16,47 @@ const starterCode = `class Solution:
         pass
 `;
 
+const dashboardDraftStorageKey = 'algoanalyze_dashboard_draft';
+
+type DashboardDraft = {
+  title: string;
+  problemStatement: string;
+  code: string;
+  sampleInput: string;
+  expectedOutput: string;
+  activeTab: AnalysisTab;
+  analysisResult: AnalysisResult | null;
+  activeStepIndex: number;
+  analyzedCode: string | null;
+};
+
+function loadDashboardDraft(): Partial<DashboardDraft> {
+  try {
+    const rawDraft = localStorage.getItem(dashboardDraftStorageKey);
+    if (!rawDraft) return {};
+    const parsed = JSON.parse(rawDraft) as Partial<DashboardDraft>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 export function Dashboard() {
   const { token } = useAuth();
   const { showToast } = useToast();
-  const [title, setTitle] = useState('');
-  const [problemStatement, setProblemStatement] = useState('');
-  const [code, setCode] = useState(starterCode);
-  const [sampleInput, setSampleInput] = useState('');
-  const [expectedOutput, setExpectedOutput] = useState('');
-  const [languageMode, setLanguageMode] = useState<LanguageMode>('english');
-  const [activeTab, setActiveTab] = useState<AnalysisTab>('explanation');
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [analyzedCode, setAnalyzedCode] = useState<string | null>(null);
+  const [draftLoaded] = useState(loadDashboardDraft);
+  const [title, setTitle] = useState(draftLoaded.title ?? '');
+  const [problemStatement, setProblemStatement] = useState(draftLoaded.problemStatement ?? '');
+  const [code, setCode] = useState(draftLoaded.code ?? starterCode);
+  const [sampleInput, setSampleInput] = useState(draftLoaded.sampleInput ?? '');
+  const [expectedOutput, setExpectedOutput] = useState(draftLoaded.expectedOutput ?? '');
+  const languageMode: LanguageMode = 'english';
+  const [activeTab, setActiveTab] = useState<AnalysisTab>(draftLoaded.activeTab ?? 'explanation');
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
+    draftLoaded.analysisResult ?? null,
+  );
+  const [activeStepIndex, setActiveStepIndex] = useState(draftLoaded.activeStepIndex ?? 0);
+  const [analyzedCode, setAnalyzedCode] = useState<string | null>(draftLoaded.analyzedCode ?? null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +65,40 @@ export function Dashboard() {
 
   const codeChangedAfterAnalysis =
     analysisResult !== null && analyzedCode !== null && code !== analyzedCode;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const draft: DashboardDraft = {
+        title,
+        problemStatement,
+        code,
+        sampleInput,
+        expectedOutput,
+        activeTab,
+        analysisResult,
+        activeStepIndex,
+        analyzedCode,
+      };
+
+      try {
+        localStorage.setItem(dashboardDraftStorageKey, JSON.stringify(draft));
+      } catch {
+        // Avoid interrupting editing if storage quota or privacy settings block persistence.
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    activeStepIndex,
+    activeTab,
+    analysisResult,
+    analyzedCode,
+    code,
+    expectedOutput,
+    problemStatement,
+    sampleInput,
+    title,
+  ]);
 
   async function handleAnalyze() {
     if (!problemStatement.trim()) {
@@ -110,7 +172,6 @@ export function Dashboard() {
     setCode(starterCode);
     setSampleInput('');
     setExpectedOutput('');
-    setLanguageMode('english');
     setActiveTab('explanation');
     setAnalysisResult(null);
     setActiveStepIndex(0);
@@ -120,6 +181,11 @@ export function Dashboard() {
     setError('');
     setSaveMessage('');
     setSaveError('');
+    try {
+      localStorage.removeItem(dashboardDraftStorageKey);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
   }
 
   async function handleSaveAnalysis() {
@@ -183,7 +249,6 @@ export function Dashboard() {
             code={code}
             sampleInput={sampleInput}
             expectedOutput={expectedOutput}
-            languageMode={languageMode}
             analysisResult={analysisResult}
             activeStepIndex={activeStepIndex}
             codeChangedAfterAnalysis={codeChangedAfterAnalysis}
@@ -194,7 +259,6 @@ export function Dashboard() {
             onCodeChange={setCode}
             onSampleInputChange={setSampleInput}
             onExpectedOutputChange={setExpectedOutput}
-            onLanguageModeChange={setLanguageMode}
             onAnalyze={handleAnalyze}
             onClear={handleClear}
           />
