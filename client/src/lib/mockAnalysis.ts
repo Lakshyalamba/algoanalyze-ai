@@ -88,9 +88,18 @@ export function createMockAnalysis(input: MockAnalysisInput): AnalysisResult {
       },
     ],
     bugsOrWarnings: [
-      'Check empty input before accessing indexes.',
-      'Avoid returning placeholder values after the answer is found.',
-      'Confirm the output format matches the platform requirement.',
+      {
+        title: 'Validate empty inputs',
+        severity: 'Medium',
+        explanation: 'Index access or loops that assume data exists can fail on minimum constraints.',
+        fix: 'Return the documented default result before reading the first element.',
+      },
+      {
+        title: 'Confirm output format',
+        severity: 'Low',
+        explanation: 'A correct algorithm can still fail if it returns the wrong container or text format.',
+        fix: 'Match the platform signature and sample output exactly.',
+      },
     ],
     edgeCases: [
       'Empty input or minimum constraint values',
@@ -108,15 +117,33 @@ export function createMockAnalysis(input: MockAnalysisInput): AnalysisResult {
     quizQuestions: [
       {
         question: 'Why does the optimized approach improve over brute force?',
-        answer: 'It stores reusable state so each element is processed once instead of comparing against every other element.',
+        options: ['It stores reusable state', 'It adds more nested loops', 'It ignores edge cases', 'It changes the sample input'],
+        correctAnswer: 'It stores reusable state',
+        explanation: 'Reusable state prevents repeated work and often reduces time complexity.',
       },
       {
         question: 'What should you verify before submitting?',
-        answer: 'Validate edge cases, output format, and complexity against the stated constraints.',
+        options: ['Edge cases and output format', 'Only variable names', 'Only button styling', 'Only comments'],
+        correctAnswer: 'Edge cases and output format',
+        explanation: 'Correctness depends on boundary inputs and matching the expected output shape.',
       },
       {
         question: 'When can O(n) space be acceptable?',
-        answer: 'When it reduces time significantly and fits within memory constraints for the input size.',
+        options: ['When it reduces time and fits memory limits', 'Never', 'Only for empty arrays', 'Only with recursion'],
+        correctAnswer: 'When it reduces time and fits memory limits',
+        explanation: 'Extra memory is often a good tradeoff when constraints allow it and time improves.',
+      },
+      {
+        question: 'What makes a dry run useful?',
+        options: ['Tracking variable changes', 'Changing the theme', 'Skipping conditions', 'Removing tests'],
+        correctAnswer: 'Tracking variable changes',
+        explanation: 'A dry run shows how state changes through each meaningful step.',
+      },
+      {
+        question: 'Why compare complexity with constraints?',
+        options: ['To know if the solution will scale', 'To rename functions', 'To choose colors', 'To remove imports'],
+        correctAnswer: 'To know if the solution will scale',
+        explanation: 'Constraints determine whether the algorithm can finish within time and memory limits.',
       },
     ],
   };

@@ -1,4 +1,4 @@
-import type { AnalysisStep, DryRunRow, QuizQuestion } from '../types/analysis';
+import type { AnalysisStep, BugReport, DryRunRow, QuizQuestion } from '../types/analysis';
 import { API_BASE_URL, getStoredToken, normalizeApiError, parseApiResponse } from '../utils/apiError';
 
 export type SaveProblemPayload = {
@@ -21,7 +21,7 @@ export type SaveProblemPayload = {
   };
   visualizationSteps?: AnalysisStep[];
   dryRunTable?: DryRunRow[];
-  bugsOrWarnings?: string[];
+  bugsOrWarnings?: Array<string | BugReport>;
   edgeCases?: string[];
   similarProblems?: string[];
   quizQuestions?: QuizQuestion[];
@@ -45,7 +45,7 @@ export type SavedProblem = SavedProblemListItem & {
   explanation: SaveProblemPayload['explanation'] | null;
   visualizationSteps: AnalysisStep[] | null;
   dryRunTable: DryRunRow[] | null;
-  bugsOrWarnings: string[] | null;
+  bugsOrWarnings: Array<string | BugReport> | null;
   edgeCases: string[] | null;
   similarProblems: string[] | null;
   quizQuestions: QuizQuestion[] | null;

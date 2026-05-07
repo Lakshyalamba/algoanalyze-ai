@@ -1,7 +1,9 @@
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { BugsPanel } from '../components/dashboard/BugsPanel';
 import { DryRunTable } from '../components/dashboard/DryRunTable';
+import { QuizPanel } from '../components/dashboard/QuizPanel';
 import { ErrorAlert } from '../components/common/ErrorAlert';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { NotesGenerator } from '../components/notes/NotesGenerator';
@@ -13,7 +15,7 @@ import {
   getSavedProblemById,
   type SavedProblem,
 } from '../services/savedProblemApi';
-import type { AnalysisResult } from '../types/analysis';
+import type { AnalysisResult, BugReport } from '../types/analysis';
 
 function TextSection({ title, children }: { title: string; children?: string | null }) {
   if (!children) {
@@ -21,28 +23,33 @@ function TextSection({ title, children }: { title: string; children?: string | n
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{children}</p>
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h2 className="text-sm font-semibold text-slate-950 dark:text-slate-100">{title}</h2>
+      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">{children}</p>
     </section>
   );
 }
 
-function ListSection({ title, items }: { title: string; items?: string[] | null }) {
+function itemToText(item: string | BugReport) {
+  if (typeof item === 'string') return item;
+  return item.title;
+}
+
+function ListSection({ title, items }: { title: string; items?: Array<string | BugReport> | null }) {
   if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h2 className="text-sm font-semibold text-slate-950 dark:text-slate-100">{title}</h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {items.map((item) => (
           <span
-            key={item}
-            className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+            key={itemToText(item)}
+            className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
           >
-            {item}
+            {itemToText(item)}
           </span>
         ))}
       </div>
@@ -179,8 +186,8 @@ export function SavedProblemDetail() {
 
           <TextSection title="Problem statement">{savedProblem.problemStatement}</TextSection>
 
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-slate-950">Code</h2>
+          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-sm font-semibold text-slate-950 dark:text-slate-100">Code</h2>
             <pre className="mt-3 overflow-x-auto rounded-md bg-slate-950 p-4 text-xs leading-6 text-slate-100">
               <code>{savedProblem.code}</code>
             </pre>
@@ -192,8 +199,8 @@ export function SavedProblemDetail() {
           </div>
 
           {savedProblem.explanation ? (
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-950">Explanation</h2>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="text-sm font-semibold text-slate-950 dark:text-slate-100">Explanation</h2>
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <TextBlock title="Problem summary" value={savedProblem.explanation.problemSummary} />
                 <TextBlock
@@ -221,8 +228,8 @@ export function SavedProblemDetail() {
           ) : null}
 
           {savedProblem.visualizationSteps && savedProblem.visualizationSteps.length > 0 ? (
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold text-slate-950">Visualization</h2>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-4 text-sm font-semibold text-slate-950 dark:text-slate-100">Visualization</h2>
               <DSAVisualizer
                 steps={savedProblem.visualizationSteps}
                 activeStepIndex={activeStepIndex}
@@ -233,13 +240,18 @@ export function SavedProblemDetail() {
           ) : null}
 
           {savedProblem.dryRunTable && savedProblem.dryRunTable.length > 0 ? (
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold text-slate-950">Dry run table</h2>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-4 text-sm font-semibold text-slate-950 dark:text-slate-100">Dry run table</h2>
               <DryRunTable rows={savedProblem.dryRunTable} />
             </section>
           ) : null}
 
-          <ListSection title="Bugs or warnings" items={savedProblem.bugsOrWarnings} />
+          {savedProblem.bugsOrWarnings && savedProblem.bugsOrWarnings.length > 0 ? (
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-4 text-sm font-semibold text-slate-950 dark:text-slate-100">Bugs or warnings</h2>
+              <BugsPanel bugsOrWarnings={savedProblem.bugsOrWarnings} />
+            </section>
+          ) : null}
           <ListSection title="Edge cases" items={savedProblem.edgeCases} />
           <ListSection title="Similar problems" items={savedProblem.similarProblems} />
 
@@ -254,19 +266,9 @@ export function SavedProblemDetail() {
           </section>
 
           {savedProblem.quizQuestions && savedProblem.quizQuestions.length > 0 ? (
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-950">Quiz questions</h2>
-              <div className="mt-4 space-y-3">
-                {savedProblem.quizQuestions.map((question) => (
-                  <div
-                    key={question.question}
-                    className="rounded-md border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <p className="text-sm font-semibold text-slate-950">{question.question}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{question.answer}</p>
-                  </div>
-                ))}
-              </div>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h2 className="mb-4 text-sm font-semibold text-slate-950 dark:text-slate-100">Quiz questions</h2>
+              <QuizPanel quizQuestions={savedProblem.quizQuestions} />
             </section>
           ) : null}
         </div>
@@ -277,9 +279,9 @@ export function SavedProblemDetail() {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-950">{value}</p>
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-slate-100">{value}</p>
     </div>
   );
 }
@@ -291,8 +293,8 @@ function TextBlock({ title, value }: { title: string; value?: string }) {
 
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase text-slate-500">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{value}</p>
+      <h3 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{value}</p>
     </div>
   );
 }

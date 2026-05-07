@@ -81,7 +81,20 @@ function getAnalysisList(input: ChatInput, key: string) {
   }
 
   const value = context[key];
-  return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
+  return Array.isArray(value)
+    ? value
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (isRecord(item)) {
+            return [item.title, item.explanation, item.fix ? `Fix: ${String(item.fix)}` : '']
+              .filter(Boolean)
+              .map(String)
+              .join(' - ');
+          }
+          return '';
+        })
+        .filter(Boolean)
+    : [];
 }
 
 function getAnalysisRecords(input: ChatInput, key: string) {

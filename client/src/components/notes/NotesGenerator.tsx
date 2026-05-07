@@ -1,4 +1,4 @@
-import type { AnalysisResult, DryRunRow, LanguageMode, QuizQuestion } from '../../types/analysis';
+import type { AnalysisResult, BugReport, DryRunRow, LanguageMode, QuizQuestion } from '../../types/analysis';
 import { NotesSection, type NotesSectionItem } from './NotesSection';
 
 type NotesGeneratorProps = {
@@ -24,8 +24,13 @@ function cleanText(value: string | null | undefined) {
   return trimmed && trimmed.length > 0 ? trimmed : fallback;
 }
 
-function cleanArray(items: string[] | null | undefined, emptyText = fallback) {
-  const cleaned = items?.map((item) => item.trim()).filter(Boolean) ?? [];
+function bugToText(item: string | BugReport) {
+  if (typeof item === 'string') return item;
+  return [item.title, item.explanation, item.fix ? `Fix: ${item.fix}` : ''].filter(Boolean).join(' - ');
+}
+
+function cleanArray(items: Array<string | BugReport> | null | undefined, emptyText = fallback) {
+  const cleaned = items?.map((item) => bugToText(item).trim()).filter(Boolean) ?? [];
   return cleaned.length > 0 ? cleaned : [emptyText];
 }
 
@@ -55,7 +60,7 @@ function summarizeQuiz(questions: QuizQuestion[] | null | undefined) {
 
   return questions
     .slice(0, 5)
-    .map((item, index) => `${index + 1}. ${item.question} Answer: ${item.answer}`);
+    .map((item, index) => `${index + 1}. ${item.question} Answer: ${item.correctAnswer || item.answer || fallback}. ${item.explanation ?? ''}`);
 }
 
 function buildSections({
