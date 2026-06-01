@@ -8,13 +8,36 @@ import { useToast } from '../context/ToastContext';
 
 export function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleDemoLogin() {
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await login('demo@algoanalyze.ai', 'demo1234');
+      showToast('Login successful.', 'success');
+      navigate('/dashboard', { replace: true });
+    } catch (caughtError) {
+      try {
+        await signup('Demo User', 'demo@algoanalyze.ai', 'demo1234');
+        showToast('Demo account created and logged in.', 'success');
+        navigate('/dashboard', { replace: true });
+      } catch (signupError) {
+        const message = signupError instanceof Error ? signupError.message : 'Unable to sign in with demo account.';
+        setError(message);
+        showToast(message, 'error');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,14 +121,24 @@ export function Login() {
               {error}
             </p>
           ) : null}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
-          </button>
+          <div className="space-y-3">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isSubmitting}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Use demo account
+            </button>
+          </div>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
           New here?{' '}
