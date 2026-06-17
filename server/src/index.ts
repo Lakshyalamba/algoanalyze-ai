@@ -47,7 +47,7 @@ function isAllowedCorsOrigin(origin: string | undefined) {
       if (
         protocol === 'http:' &&
         (hostname === 'localhost' || hostname === '127.0.0.1') &&
-        ['5173', '5174', '5175'].includes(port)
+        ['5173', '5174', '5175', '8000'].includes(port)
       ) {
         return true;
       }
