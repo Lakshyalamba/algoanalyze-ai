@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const analyzeCodeSchema = z.object({
   title: z.string().trim().optional(),
-  problemStatement: z.string().trim().min(1, 'Problem statement is required.'),
+  problemStatement: z.string().trim().optional(),
   code: z
     .string()
     .trim()

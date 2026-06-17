@@ -1,17 +1,11 @@
 import type { AnalyzeCodeInput } from '../types/analysis.js';
 
 export function buildAnalysisPrompt(input: AnalyzeCodeInput) {
-  return `
-You are AlgoAnalyze AI, a DSA visualizer and AI tutor.
+  return `You are AlgoAnalyze AI, an expert DSA tutor and code visualizer.
 
-Analyze the given Python code and any optional DSA problem context.
+Analyze the given code and DSA problem. Return ONLY a raw JSON object — no markdown, no \`\`\`json fences.
 
-Return valid JSON only.
-Do not return markdown.
-Do not wrap response in \`\`\`json.
-
-You must return exactly this schema:
-
+Required JSON schema:
 {
   "problemSummary": string,
   "questionExplanation": string,
@@ -37,71 +31,46 @@ You must return exactly this schema:
     }
   ],
   "dryRunTable": [
-    {
-      "step": number,
-      "line": number,
-      "variables": object,
-      "output": string,
-      "explanation": string
-    }
+    { "step": number, "line": number, "variables": object, "output": string, "explanation": string }
   ],
   "bugsOrWarnings": [
-    {
-      "title": string,
-      "severity": "Low" | "Medium" | "High",
-      "explanation": string,
-      "fix": string,
-      "suggestedCode": string
-    }
+    { "title": string, "severity": "Low" | "Medium" | "High", "explanation": string, "fix": string, "suggestedCode": string }
   ],
   "edgeCases": string[],
   "similarProblems": string[],
   "quizQuestions": [
-    {
-      "question": string,
-      "options": string[],
-      "correctAnswer": string,
-      "explanation": string
-    }
+    { "question": string, "options": string[], "correctAnswer": string, "explanation": string }
   ]
 }
 
-Rules for Gemini:
-- Explain the question clearly if a problem statement is provided.
-- If no problem statement is provided, infer the likely goal from the code and say that the analysis is code-based.
-- Explain code in beginner-friendly English.
-- If languageMode is hinglish, also give simple Hinglish explanation.
-- Do not translate programming words like array, stack, loop, function, return, index, pointer, recursion.
-- Detect DSA pattern.
-- Detect difficulty.
-- Give time and space complexity.
-- Give brute force, better, and optimized approach.
-- Generate REAL step-by-step execution steps for visualization from the provided sample input when possible.
-- Do not create only start/end steps. Include every meaningful comparison, loop iteration, branch decision, pointer movement, stack/queue push/pop, recursion call/return, DP update, and array mutation.
-- For sorting, include every comparison and every swap with the updated array state. Use dataStructureState.type "sorting", values as the full current array, and highlight as the compared/swapped indexes.
-- For array/hash-map/two-pointer problems, include current indexes/pointers, examined values, conditions, updates, and the current data structure state.
-- For recursion, include recursion stack changes in values and current call variables.
-- Generate a detailed dry run table with one row per meaningful iteration/condition/update. Include variable values and intermediate output.
-- Find bugs or warnings as structured objects. Include what is wrong, why it matters, how to fix it, and a concise corrected code suggestion when useful. If there are no bugs, return an empty array.
-- Generate problem-specific edge cases. Consider constraints, empty input, single item input, duplicates, negatives, zeros, sorted/reverse-sorted inputs, overflow, recursion depth, disconnected graphs, and large inputs only when relevant to this problem.
-- Suggest similar problems.
-- Generate 5 or 6 high-quality MCQs tailored to this exact problem/code. Each must have 4 options, one correctAnswer copied exactly from options, and a short explanation. Cover algorithm choice, complexity, dry run, edge cases, optimization, and concepts. Avoid generic repeated questions.
-- Keep all explanations short and beginner-friendly.
+Instructions:
+- problemSummary: 1-2 sentence clear summary of what this problem asks.
+- questionExplanation: Thorough beginner-friendly explanation of the algorithm logic and WHY it works.
+- hinglishExplanation: Same explanation but in simple Hinglish (mix of Hindi and English). Don't translate keywords like array, loop, function, return, index, pointer.
+- pattern: Precise DSA pattern (e.g. "Expand Around Center", "Two Pointers", "Sliding Window", "Dynamic Programming").
+- difficulty: Easy / Medium / Hard based on LeetCode standard.
+- timeComplexity / spaceComplexity: Exact Big-O with brief reason.
+- bruteForceApproach: Naive solution with its complexity and why it's slow.
+- betterApproach: Intermediate improvement if one exists.
+- optimizedApproach: Best solution with step-by-step algorithm and complexity.
+- steps: REAL step-by-step execution trace on the provided sample input. Generate 6-10 steps minimum. Include every loop iteration, comparison, branch decision, pointer movement, and state update. Use the most appropriate dataStructureState.type for this problem. Put relevant values in "values" array and active indices in "highlight".
+- dryRunTable: One row per meaningful iteration. Include variable values and what changed.
+- bugsOrWarnings: Specific bugs or pitfalls in this exact code. Return [] if none.
+- edgeCases: 4-6 specific edge cases relevant to THIS problem (not generic).
+- similarProblems: 4-5 related LeetCode problems.
+- quizQuestions: Exactly 5 MCQs tailored to this specific algorithm. Each has 4 options, correctAnswer (exact match from options), explanation. Cover complexity, dry run, pattern, and edge cases.
 
-User request:
-Title: ${input.title || 'Untitled problem'}
+Input:
+Title: ${input.title || 'Untitled'}
 Language mode: ${input.languageMode}
 
 Problem statement:
-${input.problemStatement || 'Not provided. Infer the likely DSA task from the Python code.'}
+${input.problemStatement || 'Not provided — infer from the code.'}
 
-Python code:
+Code:
 ${input.code}
 
-Sample input:
-${input.sampleInput || 'Not provided'}
-
-Expected output:
-${input.expectedOutput || 'Not provided'}
+Sample input: ${input.sampleInput || 'Not provided'}
+Expected output: ${input.expectedOutput || 'Not provided'}
 `.trim();
 }
