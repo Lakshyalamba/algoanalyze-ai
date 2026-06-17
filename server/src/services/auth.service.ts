@@ -97,3 +97,19 @@ export async function getUserById(userId: string) {
 
   return user ? toAuthUser(user) : null;
 }
+
+export async function updateUserName(userId: string, name: string) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { name },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return toAuthUser(user);
+}
