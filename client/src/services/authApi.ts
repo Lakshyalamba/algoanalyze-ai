@@ -70,4 +70,14 @@ export function logoutUser(token: string | null) {
       : undefined,
   });
 }
+
+export function updateProfileName(name: string, token: string) {
+  return request<{ user: User }>('/api/auth/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 import { API_BASE_URL, normalizeApiError, parseApiResponse } from '../utils/apiError';

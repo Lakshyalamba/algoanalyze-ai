@@ -12,6 +12,7 @@ import {
   loginUser,
   logoutUser,
   signupUser,
+  updateProfileName,
   type User,
 } from '../services/authApi';
 import { getStoredToken, removeStoredToken, setStoredToken } from '../utils/apiError';
@@ -25,6 +26,7 @@ type AuthContextValue = {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateName: (name: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -95,6 +97,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [clearSession, token]);
 
+  const updateName = useCallback(
+    async (name: string) => {
+      if (!token) throw new Error('Not authenticated.');
+      const result = await updateProfileName(name, token);
+      setUser(result.user);
+    },
+    [token],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -105,8 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signup,
       logout,
       refreshUser,
+      updateName,
     }),
-    [isLoading, login, logout, refreshUser, signup, token, user],
+    [isLoading, login, logout, refreshUser, signup, token, updateName, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
